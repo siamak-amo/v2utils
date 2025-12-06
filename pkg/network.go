@@ -2,8 +2,24 @@ package pkg
 
 import (
 	"fmt"
+	"strings"
 	v4 "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
 )
+
+func set_tls_alpn (args URLmap) {
+	var res string
+	if _, ok := args[TLS_ALPN]; !ok {
+		args[TLS_ALPN] = `"h2", "http/1.1"`
+		return
+	}
+	for _, key := range strings.Split(args[TLS_ALPN], ",") {
+		res += `"` + key + `",`
+	}
+	if len(res) >= 1 {
+		res = res[:len(res)-1]
+	}
+	args[TLS_ALPN] = res
+}
 
 func set_stream_settings(args URLmap, dst *v4.StreamConfig) (e error) {
 	switch (args[Network]) {
@@ -49,10 +65,11 @@ func set_stream_settings(args URLmap, dst *v4.StreamConfig) (e error) {
 
 	case "tls":
 		map_normal (args, TLS_AllowInsecure, "true")
+		set_tls_alpn (args)
 		if e = unmarshal_H (&dst.TLSSettings,
 			fmt.Sprintf (
-				`{"servername": "%s", "allowInsecure": %s, "alpn": ["h2", "http/1.1"]}`,
-				args[TLS_sni], args[TLS_AllowInsecure],
+				`{"servername": "%s", "allowInsecure": %s, "alpn": [%s], "fingerprint": "%s"}`,
+				args[TLS_sni], args[TLS_AllowInsecure], args[TLS_ALPN], args[TLS_fp],
 			),
 		); e != nil {
 			// log

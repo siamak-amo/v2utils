@@ -65,7 +65,9 @@ func parse_vless_url (u *url.URL) (URLmap) {
 
 	switch (res[Security]) {
 	case "tls":
+		res[TLS_fp] = Pop(params, "fp")
 		res[TLS_sni] = Pop(params, "sni")
+		res[TLS_ALPN] = Pop(params, "alpn")
 		break;
 
 	default:

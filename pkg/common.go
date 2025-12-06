@@ -18,6 +18,8 @@ const (
 	Security
 	// Security config
 	TLS_sni
+	TLS_ALPN
+	TLS_fp // fingerprint
 	TLS_AllowInsecure
 	// Stream type specific parts
 	TCP_HeaderType         // tcp
