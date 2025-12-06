@@ -5,7 +5,6 @@ import (
 	"runtime"
 	"testing"
 	"strconv"
-	"path/filepath"
 	"encoding/json"
 
 	v4 "github.com/v2fly/v2ray-core/v5/infra/conf/v4"
@@ -33,7 +32,7 @@ func (tc *TestCase[T]) Do (data any) {
 // this happens if your language doesn't support macro
 func printFailure(actual, expected interface{}) {
 	if _, file, line, ok := runtime.Caller(2); ok {
-		fmt.Printf ("%s:%d:  test failed.\n\t", filepath.Base(file), line)
+		fmt.Printf ("%s:%d:  test failed.\n\t", file, line)
 	} else {
 		fmt.Printf ("test failed.\n\t")
 	}
