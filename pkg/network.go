@@ -2,53 +2,74 @@ package pkg
 
 import (
 	"fmt"
+	"errors"
 	core "github.com/xtls/xray-core/infra/conf"
 )
 
-func set_stream_settings(args URLmap, dst *core.StreamConfig) (e error) {
-	switch (args[Network]) {
-	case "ws":
-		e = unmarshal_H (&dst.WSSettings,
-			fmt.Sprintf (`{"path": "%s", "headers": {"Host": "%s"}}`,
-				args[WS_Path], args[WS_Headers]),
-		);
-		break
+func set_stream_tcp (args URLmap, dst *core.StreamConfig) (error) {
+	switch (args[TCP_HeaderType]) {
+	case "none", "":
+		return unmarshal_H (&dst.TCPSettings, (`{"header": {"type": "none"}}`));
 
-	case "tcp":
-		switch (args[TCP_HeaderType]) {
-		case "none", "":
-			e = unmarshal_H (&dst.TCPSettings, (`{"header": {"type": "none"}}`));
-			break;
-
-		case "http":
-			e = unmarshal_H (&dst.TCPSettings, fmt.Sprintf (
+	case "http":
+		return unmarshal_H (&dst.TCPSettings,
+			fmt.Sprintf (
 				`{
                     "header": {"type": "%s"}, "request": {
                       "version": "1.1", "path": ["%s"], "headers": {"Host": "%s"}
                     }
                  }`,
-				args[TCP_HeaderType], args[TCP_HTTP_Path], args[TCP_HTTP_Host]),
-			);
-			break;
+				args[TCP_HeaderType], args[TCP_HTTP_Path], args[TCP_HTTP_Host],
+			),
+		);
 
-		default:
-			break;
-		} // End of `switch (args[TCP_HeaderType])`
-		break
+	default:
+		return not_implemented ("not implemented header type: " + args[TCP_HeaderType]);
+	}
+}
 
+func set_stream_ws (args URLmap, dst *core.StreamConfig) (error) {
+	return unmarshal_H (&dst.WSSettings,
+		fmt.Sprintf (`{"path": "%s", "headers": {"Host": "%s"}}`,
+			args[WS_Path], args[WS_Headers]),
+	);
+}
+
+func set_stream_grpc (args URLmap, dst *core.StreamConfig) (error) {
+	return unmarshal_H (&dst.GRPCSettings,
+		fmt.Sprintf (`{"serviceName": "%s", "multiMode": %s, "mode": "%s"}`,
+			args[GRPC_ServiceName], args[GRPC_MultiMode], args[GRPC_Mode]),
+	);
+}
+
+func set_sec_tls (args URLmap, dst *core.StreamConfig) (error) {
+	args[TLS_ALPN] = mk_json_from_csv (args[TLS_ALPN]);
+	return unmarshal_H (&dst.TLSSettings,
+		fmt.Sprintf (
+			`{"servername": "%s", "allowInsecure": %s, "alpn": [%s], "fingerprint": "%s"}`,
+			args[TLS_sni], args[TLS_AllowInsecure], args[TLS_ALPN], args[TLS_fp],
+		),
+	);
+}
+
+func set_stream_settings(args URLmap, dst *core.StreamConfig) (e error) {
+	switch (args[Network]) {
+	case "ws":
+		e = set_stream_ws (args, dst);
+		break;
+	case "tcp":
+		e = set_stream_tcp (args, dst);
+		break;
 	case "grpc":
 		map_normal (args, GRPC_MultiMode, "false")
-		e = unmarshal_H (&dst.GRPCSettings,
-			fmt.Sprintf (`{"serviceName": "%s", "multiMode": %s, "mode": "%s"}`,
-				args[GRPC_ServiceName], args[GRPC_MultiMode], args[GRPC_Mode]),
-		);
-		break
-
+		e = set_stream_grpc (args, dst)
+		break;
 	default:
 		return not_implemented ("network " + args[Network])
 	}
 	if nil != e {
 		// log
+		return
 	}
 
 	switch (args[Security]) {
@@ -58,20 +79,14 @@ func set_stream_settings(args URLmap, dst *core.StreamConfig) (e error) {
 	case "tls":
 		map_normal (args, TLS_AllowInsecure, "true")
 		map_normal (args, TLS_ALPN, "h2,http/1.1")
-
-		args[TLS_ALPN] = mk_json_from_csv (args[TLS_ALPN])
-		if e = unmarshal_H (&dst.TLSSettings,
-			fmt.Sprintf (
-				`{"servername": "%s", "allowInsecure": %s, "alpn": [%s], "fingerprint": "%s"}`,
-				args[TLS_sni], args[TLS_AllowInsecure], args[TLS_ALPN], args[TLS_fp],
-			),
-		); e != nil {
-			// log
-		}
+		e = set_sec_tls (args, dst)
 		break;
 
+	case "reality", "xtls":
+		return not_implemented ("security " + args[Security]);
+
 	default:
-		return not_implemented ("security " + args[Security])
+		return errors.New ("invalid security protocol: " + args[Security]);
 	}
 	return
 }

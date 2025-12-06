@@ -44,6 +44,10 @@ func Test_Gen_StreamSettings_2 (t *testing.T) {
 
 	tc.Do(v);
 	tls := tc.Output.TLSSettings
+	if nil == tls {
+		t.Fatalf ("TLSSettings is uninitialized")
+	}
+
 	tc.Assert (tc.Output.Network,    tc.Input[Network])
 	tc.Assert (tc.Output.Security,   tc.Input[Security])
 	tc.Assert (tls.ServerName,       tc.Input[TLS_sni])
