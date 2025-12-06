@@ -8,4 +8,4 @@ main:
 	$(GOCC) build -v $(CMD_DIR)/$(MAIN_CMD)
 
 test:
-	$(GOCC) test $(PKG_DIR)
+	$(GOCC) test -v $(PKG_DIR)
