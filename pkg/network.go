@@ -43,7 +43,7 @@ func set_stream_grpc (args URLmap, dst *core.StreamConfig) (error) {
 }
 
 func set_sec_tls (args URLmap, dst *core.StreamConfig) (error) {
-	args[TLS_ALPN] = mk_json_from_csv (args[TLS_ALPN]);
+	args[TLS_ALPN] = csv2jsonArray (args[TLS_ALPN]);
 	return unmarshal_H (&dst.TLSSettings,
 		fmt.Sprintf (
 			`{"servername": "%s", "allowInsecure": %s, "alpn": [%s], "fingerprint": "%s"}`,
