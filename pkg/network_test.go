@@ -69,8 +69,45 @@ func Test_Gen_StreamSettings_2 (t *testing.T) {
 
 	tc.Do(v);
 	tls = tc.Output.TLSSettings
+	if nil == tls {
+		t.Fatalf ("TLSSettings is uninitialized")
+	}
 	tc.Assert (tc.Output.Network,    tc.Input[Network])
 	tc.Assert (tc.Output.Security,   tc.Input[Security])
 	tc.Assert (tls.ServerName,       tc.Input[TLS_sni])
 	tc.Assert (tls.Insecure,         "true")
+}
+
+// Reality test
+func Test_Gen_StreamSettings_3 (t *testing.T) {
+	tc := TestCase[StreamConfig] {T: t,
+		Input: map[URLMapper]string {
+		    Network:    		"grpc",
+			Security:			"reality",
+			REALITY_fp:	        "firefox-66",
+			REALITY_sni:	    "sec.vpn.net",
+			REALITY_SpiderX:    "%2Fvideos%2F",
+			REALITY_PublicKey:  "OBR2JYROQB8odK5glVW_KLnsWl3UZ",
+		},
+		Output: StreamConfig{},
+	}
+	v, e := Gen_streamSettings (tc.Input)
+	if nil != e {
+		t.Fatalf ("Gen_streamSettings failed: %v\n", e)
+		return
+	}
+
+	tc.Do(v);
+	reality := tc.Output.REALITYSettings
+	if nil == reality {
+		t.Fatalf ("RealitySettings is uninitialized")
+	}
+
+	tc.Assert (tc.Output.Network,           tc.Input[Network])
+	tc.Assert (tc.Output.Security,          tc.Input[Security])
+	tc.Assert (reality.Show,                "false");
+	tc.Assert (reality.Fingerprint,         tc.Input[REALITY_fp]);
+	tc.Assert (reality.ServerName,          tc.Input[REALITY_sni]);
+	tc.Assert (reality.SpiderX,             tc.Input[REALITY_SpiderX]);
+	tc.Assert (reality.PublicKey,           tc.Input[REALITY_PublicKey]);
 }

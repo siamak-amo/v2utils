@@ -81,3 +81,22 @@ func Test_parse_vless_url_4 (t *testing.T) {
 	umap.Assert (t, GRPC_Mode,			"gun")
 	umap.Assert (t, GRPC_ServiceName,	"@Gigiv2ray")
 }
+
+func Test_parse_vless_url_5 (t *testing.T) {
+	const VLESS_TEST_4 = "vless://eb3fdd8f-bcc9@config4vpn.fun:2053?mode=gun&security=reality&encryption=none&pbk=z1tAnqd5RA4I99LrK5FCJgjCd&fp=chrome&spx=%2Fvpn4You%2Ftest&type=grpc&serviceName=@configforVPN&sni=discordapp.com&sid=b1803d25#%40ConfigforVPN"
+	umap, e := ParseURL(VLESS_TEST_4);
+	if nil != e {
+		t.Fatalf ("parse_vless_url failed: %v\n", e)
+	}
+
+	umap.Assert (t, Network,			"grpc")
+	umap.Assert (t, GRPC_Mode,			"gun")
+	umap.Assert (t, GRPC_ServiceName,	"@configforVPN")
+
+	umap.Assert (t, Security,			"reality")
+	umap.Assert (t, REALITY_fp,			"chrome")
+	umap.Assert (t, REALITY_sni,		"discordapp.com")
+	umap.Assert (t, REALITY_ShortID,	"b1803d25")
+	umap.Assert (t, REALITY_SpiderX,	"/vpn4You/test")
+	umap.Assert (t, REALITY_PublicKey,	"z1tAnqd5RA4I99LrK5FCJgjCd")
+}

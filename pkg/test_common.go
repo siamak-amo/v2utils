@@ -101,15 +101,16 @@ type VLessCFG OutboundDetourConfig[VXessOutboundConfig[VXessOutboundVnext[VLessA
 type VMessCFG OutboundDetourConfig[VXessOutboundConfig[VXessOutboundVnext[VMessAccount]]]
 
 type StreamConfig struct {
-	Network        string           `json:"network"`
-	Security       string           `json:"security"`
-	TCPSettings    *TCPConfig       `json:"tcpSettings"`
-	TLSSettings    *TLSConfig       `json:"tlsSettings"`
-	WSSettings     *WebSocketConfig `json:"wsSettings"`
-	HTTPSettings   *HTTPConfig      `json:"httpSettings"`
-	Hy2Settings    *Hy2Config       `json:"hy2Settings"`
-	QUICSettings   *QUICConfig      `json:"quicSettings"`
-	GRPCConfig     *GunConfig       `json:"grpcSettings"`
+	Network             string               `json:"network"`
+	Security            string               `json:"security"`
+	TCPSettings         *TCPConfig           `json:"tcpSettings"`
+	TLSSettings         *TLSConfig           `json:"tlsSettings"`
+	REALITYSettings     *REALITYConfig       `json:"realitySettings"`
+	WSSettings          *WebSocketConfig     `json:"wsSettings"`
+	HTTPSettings        *HTTPConfig          `json:"httpSettings"`
+	Hy2Settings         *Hy2Config           `json:"hy2Settings"`
+	QUICSettings        *QUICConfig          `json:"quicSettings"`
+	GRPCConfig          *GunConfig           `json:"grpcSettings"`
 }
 
 type TCPConfig struct {
@@ -119,6 +120,17 @@ type TLSConfig struct {
 	Insecure    bool				`json:"allowInsecure"`
 	ServerName  string				`json:"serverName"`
 	ALPN        []string			`json:"alpn"`
+}
+type REALITYConfig struct {
+	Show          bool          `json:"show"`
+	ServerName    string	    `json:"serverName"`
+	ServerNames   []string      `json:"serverNames"`
+	PrivateKey    string        `json:"privateKey"`
+	ShortId       string	    `json:"shortId"`
+	ShortIds      []string      `json:"shortIds"`
+	Fingerprint   string	    `json:"fingerprint"`
+	PublicKey     string	    `json:"publicKey"`
+	SpiderX       string	    `json:"spiderX"`
 }
 type WebSocketConfig struct {
 	Path       string				`json:"path"`
