@@ -49,6 +49,7 @@ const (
 	Vmess_AlterID
 	SS_Password
 	SS_Method
+	Trojan_Password
 )
 
 func unmarshal_H (t interface{}, input string) (error) {

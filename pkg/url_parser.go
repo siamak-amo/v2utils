@@ -23,7 +23,7 @@ func ParseURL(link string) (URLmap, error) {
 	case "ss":
 		return parse_ss_url (u)
 	case "trojan":
-		return nil, not_implemented (u.Scheme)
+		return parse_trojan_url (u), nil
 
 	default:
 		return nil, errors.New ("Invalid URL scheme")
@@ -148,7 +148,7 @@ func parse_vmess_url (input string) (URLmap, error) {
 	return res, nil
 }
 
-// 	url:  "vmess://BASE64(method:password)@address:port"
+// 	url:  "ss://BASE64(method:password)@address:port"
 func parse_ss_url (u *url.URL) (URLmap, error) {
 	res := make (URLmap, 0)
 
@@ -168,4 +168,62 @@ func parse_ss_url (u *url.URL) (URLmap, error) {
 	res[ServerPort] = u.Port()
 	res[ServerAddress] = u.Hostname()
 	return res, nil
+}
+
+// 	url:  "trojan://password@address:port?key=value..."
+func parse_trojan_url (u *url.URL) (URLmap) {
+	res := make (URLmap, 0)
+	params := Str2Strr(u.Query())
+
+	res[Protocol] = "trojan"
+	res[ServerPort] = u.Port()
+	res[ServerAddress] = u.Hostname()
+	res[Trojan_Password] = u.User.Username()
+
+	res[Network] = params.Pop ("type")
+	res[Security] = params.Pop ("security")
+	switch (res[Network]) {
+	case "ws":
+		res[WS_Path] = params.Pop ("path");
+		res[WS_Headers] = params.Pop ("host");
+		break;
+	case "tcp":
+		res[TCP_HTTP_Host] = params.Pop ("host");
+		res[TCP_HTTP_Path] = params.Pop ("path");
+		res[TCP_HeaderType] = params.Pop ("headerType");
+		break;
+	case "grpc":
+		res[GRPC_Mode] = params.Pop ("mode")
+		res[GRPC_MultiMode] = params.Pop ("multiMode")
+		res[GRPC_ServiceName] = params.Pop ("serviceName")
+		break;
+	default:
+		break;
+	}
+
+	switch (res[Security]) {
+	case "tls":
+		res[TLS_fp] = params.Pop ("fp")
+		res[TLS_sni] = params.Pop ("sni")
+		res[TLS_ALPN] = params.Pop ("alpn")
+		break;
+
+	case "reality":
+		res[REALITY_fp] = params.Pop ("fp")
+		res[REALITY_sni] = params.Pop ("sni")
+		res[REALITY_ShortID] = params.Pop ("sid")
+		res[REALITY_SpiderX] = params.Pop ("spx")
+		res[REALITY_PublicKey] = params.Pop ("pbk")
+		break;
+
+	default:
+		break;
+	}
+
+	for key, v := range params {
+		if len(v) >= 1 {
+			fmt.Printf ("parse_ss_url: parameter '%v' was ignored.\n", key)
+		}
+	}
+	return res
 }
