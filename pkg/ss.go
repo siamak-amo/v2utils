@@ -7,6 +7,7 @@ import (
 )
 
 func Gen_ss(args URLmap) (dst *core.OutboundDetourConfig, e error) {
+    map_normal (args, ServerPort, "443")
 	dst = &core.OutboundDetourConfig{}
     if e = unmarshal_H (dst,
         fmt.Sprintf (

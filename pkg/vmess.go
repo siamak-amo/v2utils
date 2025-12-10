@@ -9,6 +9,8 @@ import (
 // internal
 func Gen_vmess(args URLmap) (dst *core.OutboundDetourConfig, e error) {
     map_normal (args, Vmess_Sec, "none")
+    map_normal (args, ServerPort, "443")
+    map_normal (args, Vmess_AlterID, "0")
     dst = &core.OutboundDetourConfig{}
     if e = unmarshal_H (dst,
         fmt.Sprintf (
