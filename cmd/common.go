@@ -7,6 +7,10 @@ import (
 	"bufio"
 	"strings"
 
+	"hash/fnv"
+	"encoding/hex"
+	"path/filepath"
+
 	pkg "github.com/siamak-amo/v2utils/pkg"
 	log "github.com/siamak-amo/v2utils/log"
 	"github.com/xtls/xray-core/core"
@@ -37,14 +41,35 @@ type Opt struct {
 };
 
 func (opt Opt) Out(buff []byte) (error) {
-	var ofile *os.File
 	if "" == *opt.output_dir {
-		ofile = os.Stdout
+		fmt.Println(string(buff));
 	} else {
-		panic ("Not Implemented");
+		path := opt.GetOutput_filepath(buff)
+		of, err := os.OpenFile(
+			path,
+			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644,
+		);
+		if err != nil {
+			log.Errorf("Out failed to open file: %v\n", err)
+			return err // fatal
+		}
+		defer of.Close()
+		if _, err = of.Write(buff); nil != err {
+			log.Errorf("Out failed to write: %v\n", err)
+			return err // fatal
+		}
+		log.Infof("wrote %s", path)
 	}
-	fmt.Fprintln(ofile, string(buff));
 	return nil
+}
+
+// generates filename based on: hash(file_content)
+func (opt Opt) GetOutput_filepath(file_content []byte) string {
+	h := fnv.New64a()
+	h.Write(file_content)
+	return filepath.Join (*opt.output_dir,
+		fmt.Sprintf("config_%s.json", hex.EncodeToString(h.Sum(nil))),
+	)
 }
 
 func GetFormatByExtension(filename string) string {

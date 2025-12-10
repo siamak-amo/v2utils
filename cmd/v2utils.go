@@ -23,7 +23,7 @@ func (opt *Opt) RegisterFlag() {
 		"template", "",
 		"path to json template file");
 	opt.output_dir = flag.String(
-		"output", "", "output file path")
+		"output", "", "output directory path")
 
 	flag.Parse();
 }
@@ -112,6 +112,12 @@ func (opt *Opt) Init() int {
 		break;
 
 	case CMD_TEST, CMD_CONVERT:
+		if "" != *opt.output_dir {
+			if err := os.MkdirAll(*opt.output_dir, 0o755); nil != err {
+				log.Errorf ("Could not create dir - %v\n", err);
+				return -1
+			}
+		}
 		if "" != *opt.url {
 			opt.Set_rd_url();
 		} else if "" != *opt.in_file {
@@ -139,7 +145,7 @@ func (opt Opt) Do() {
 		switch (opt.Cmd) {
 		case CMD_CONVERT:
 			if e := opt.Convert_url2json(ln); nil != e {
-				panic(e)
+				return
 			}
 			break;
 
