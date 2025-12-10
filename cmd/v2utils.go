@@ -17,32 +17,38 @@ const (
 
 type Opt struct {
 	Cmd int
-	URL *string
-	IN_File *string
+	Template core.ConfigSource
+
+	url *string
+	in_file *string  // input URLs file path
+	template_file *string // template file path
 
 	scanner *bufio.Scanner
 	GetInput func() (string, bool)
 };
 
 func (opt *Opt) New() {
-	opt.URL = flag.String(
+	opt.url = flag.String(
 		"url", "",
 		"proxy URL e.g. vless://xxx");
-	opt.IN_File = flag.String(
+	opt.in_file = flag.String(
 		"input", "",
 		"path to proxy URLs file");
+	opt.template_file = flag.String(
+		"template", "",
+		"path to json template file");
 
 	flag.Parse();
 }
 
 func (opt *Opt) Set_rd_url() {
 	opt.GetInput = func() (string, bool) {
-		return *opt.URL, true
+		return *opt.url, true
 	}
 }
 
 func (opt *Opt) Set_rd_file() error {
-	f, err := os.Open(*opt.IN_File)
+	f, err := os.Open(*opt.in_file)
 	if nil != err {
 		return err
 	}
@@ -89,7 +95,7 @@ func (opt *Opt) ParseFlags() int {
 		break;
 	case "run","Run","RUN", "r","R":
 		opt.Cmd = CMD_RUN
-		if "" == *opt.URL {
+		if "" == *opt.url {
 			println ("Run command needs a URL (--url).");
 			return -1
 		}
@@ -104,15 +110,18 @@ func (opt *Opt) ParseFlags() int {
 
 // returns negative on fatal failures
 func (opt *Opt) Init() int {
+	if "" != *opt.template_file {
+		opt.Template = core.ConfigSource{*opt.template_file, "json"} // TODO: fix this ***
+	}
 	switch (opt.Cmd) {
 	case CMD_RUN:
 		opt.Set_rd_url()
 		break;
 
 	case CMD_TEST, CMD_CONVERT:
-		if "" != *opt.URL {
+		if "" != *opt.url {
 			opt.Set_rd_url();
-		} else if "" != *opt.IN_File {
+		} else if "" != *opt.in_file {
 			if e := opt.Set_rd_file(); nil != e {
 				fmt.Printf ("%v\n", e);
 				return -1
@@ -127,6 +136,7 @@ func (opt *Opt) Init() int {
 func (opt Opt) Do() {
 	EOF := false
 	var ln string
+
 	for true != EOF {
 		ln, EOF = opt.GetInput();
 		if len(ln) == 0 || ln[0] <= ' ' || ln[0] == '#' {
