@@ -2,8 +2,7 @@
 package main
 
 import (
-	"fmt"
-
+	log "github.com/siamak-amo/v2utils/log"
 	"github.com/xtls/xray-core/infra/conf"
 	"github.com/xtls/xray-core/infra/conf/serial"
 	"github.com/xtls/xray-core/main/confloader"
@@ -13,11 +12,11 @@ import (
 func (opt *Opt) Apply_template(dst *conf.Config) {
 	r, err := confloader.LoadConfig(opt.Template.Name)
 	if nil != err {
-		fmt.Println (err);
+		log.Errorf("%v\n", err);
 	} else {
 		c, err := serial.ReaderDecoderByFormat[opt.Template.Format](r)
 		if nil != err {
-			fmt.Println (err);
+			log.Errorf("%v\n", err);
 		} else {
 			*dst = *c  // for the first time
 

@@ -8,6 +8,7 @@ import (
 	"golang.org/x/term"
 
 	flag "github.com/spf13/pflag"
+	log "github.com/siamak-amo/v2utils/log"
 	"github.com/xtls/xray-core/core"
 )
 
@@ -151,11 +152,11 @@ func (opt Opt) Do() {
 			break;
 
 		case CMD_RUN:
-			fmt.Printf("Not Implemented -- Running xray-core with URL: `%s`\n", ln);
+			log.Errorf("Not Implemented -- Running xray-core with URL: `%s`\n", ln);
 			break;
 
 		case CMD_TEST:
-			fmt.Printf ("Not Implemented -- Testing URL: `%s`\n", ln);
+			log.Errorf("Not Implemented -- Testing URL: `%s`\n", ln);
 			break;
 		}
 	}

@@ -2,11 +2,11 @@
 package pkg
 
 import (
-	"fmt"
 	"errors"
 	"strings"
 	"net/url"
 	"encoding/base64"
+	log "github.com/siamak-amo/v2utils/log"
 )
 
 func ParseURL(link string) (URLmap, error) {
@@ -85,7 +85,7 @@ func parse_vless_url (u *url.URL) (URLmap) {
 
 	for key, v := range params {
 		if len(v) >= 1 {
-			fmt.Printf ("parse_vless_url: parameter '%v' was ignored.\n", key)
+			log.Warnf("parse_vless_url - parameter '%v' was ignored.\n", key)
 		}
 	}
 	return res
@@ -142,7 +142,7 @@ func parse_vmess_url (input string) (URLmap, error) {
 	dst.Pop ("aid"); dst.Pop ("scy"); dst.Pop ("ps"); dst.Pop ("v") // unused
 	for key, v := range dst {
 		if len(v) >= 1 {
-			fmt.Printf ("parse_vmess_url: parameter '%v' was ignored.\n", key)
+			log.Warnf("parse_vmess_url - parameter '%v' was ignored.\n", key)
 		}
 	}
 	return res, nil
@@ -222,7 +222,7 @@ func parse_trojan_url (u *url.URL) (URLmap) {
 
 	for key, v := range params {
 		if len(v) >= 1 {
-			fmt.Printf ("parse_ss_url: parameter '%v' was ignored.\n", key)
+			log.Warnf("parse_ss_url - parameter '%v' was ignored.\n", key)
 		}
 	}
 	return res

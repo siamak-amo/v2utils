@@ -2,8 +2,7 @@
 package pkg
 
 import (
-	"fmt"
-
+	log "github.com/siamak-amo/v2utils/log"
 	core "github.com/xtls/xray-core/infra/conf"
 )
 
@@ -33,7 +32,7 @@ func Gen_outbound(args URLmap) (dst []core.OutboundDetourConfig, e error) {
 		if e == nil {
 			dst = append (dst, *v)
 		} else {
-			fmt.Printf("Vless Error:  %v\n", e)
+			log.Errorf("Vless Error:  %v\n", e)
 			return nil, e
 		}
 		break
@@ -42,7 +41,7 @@ func Gen_outbound(args URLmap) (dst []core.OutboundDetourConfig, e error) {
 		if e == nil {
 			dst = append (dst, *v)
 		} else {
-			fmt.Printf("Vmess Error:  %v\n", e)
+			log.Errorf("Vmess Error:  %v\n", e)
 			return nil, e
 		}
 		break
@@ -52,7 +51,7 @@ func Gen_outbound(args URLmap) (dst []core.OutboundDetourConfig, e error) {
 		if e == nil {
 			dst = append (dst, *v)
 		} else {
-			fmt.Printf("Shadowsocks Error:  %v\n", e)
+			log.Errorf("Shadowsocks Error:  %v\n", e)
 			return nil, e
 		}
 		break
@@ -62,7 +61,7 @@ func Gen_outbound(args URLmap) (dst []core.OutboundDetourConfig, e error) {
 		if e == nil {
 			dst = append (dst, *v)
 		} else {
-			fmt.Printf("Vmess Error:  %v\n", e)
+			log.Errorf("Vmess Error:  %v\n", e)
 			return nil, e
 		}
 		break
