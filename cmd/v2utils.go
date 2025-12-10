@@ -10,27 +10,10 @@ import (
 	flag "github.com/spf13/pflag"
 	log "github.com/siamak-amo/v2utils/log"
 	"github.com/xtls/xray-core/core"
+	"github.com/xtls/xray-core/infra/conf"
 )
 
-const (
-	CMD_CONVERT int = iota
-	CMD_TEST
-	CMD_RUN
-)
-
-type Opt struct {
-	Cmd int
-	Template core.ConfigSource
-
-	url *string
-	in_file *string  // input URLs file path
-	template_file *string // template file path
-
-	scanner *bufio.Scanner
-	GetInput func() (string, bool)
-};
-
-func (opt *Opt) New() {
+func (opt *Opt) RegisterFlag() {
 	opt.url = flag.String(
 		"url", "",
 		"proxy URL e.g. vless://xxx");
@@ -81,8 +64,9 @@ func (opt *Opt) Set_rd_stdin() {
 	}
 }
 
-// returns negative for fatal errors
+// returns negative on fatal failures
 func (opt *Opt) ParseFlags() int {
+	opt.RegisterFlag();
 	argv := flag.Args()
 	if len(argv) == 0 {
 		fmt.Fprintln(os.Stderr, "error:  missing COMMAND")
@@ -165,7 +149,8 @@ func (opt Opt) Do() {
 
 func main() {
 	opt := Opt{};
-	opt.New();
+	opt.CFG = &conf.Config{}
+
 	if ret := opt.ParseFlags(); ret < 0 {
 		os.Exit (-ret);
 	}
