@@ -43,6 +43,27 @@ func Gen_outbound(args URLmap) (dst []core.OutboundDetourConfig, e error) {
 			dst = append (dst, *v)
 		} else {
 			fmt.Printf("Vmess Error:  %v\n", e)
+			return nil, e
+		}
+		break
+
+	case "ss","shadowsocks":
+		v, e := Gen_ss (args)
+		if e == nil {
+			dst = append (dst, *v)
+		} else {
+			fmt.Printf("Shadowsocks Error:  %v\n", e)
+			return nil, e
+		}
+		break
+
+	case "trojan":
+		v, e := Gen_trojan (args)
+		if e == nil {
+			dst = append (dst, *v)
+		} else {
+			fmt.Printf("Vmess Error:  %v\n", e)
+			return nil, e
 		}
 		break
 
