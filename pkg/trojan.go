@@ -29,5 +29,9 @@ func Gen_trojan (args URLmap) (dst *core.OutboundDetourConfig, e error) {
 	); nil != e {
 		// log
 	}
+	if dst.StreamSetting, e = Gen_streamSettings (args); nil != e {
+        // log
+		return
+    }
 	return
 } 
