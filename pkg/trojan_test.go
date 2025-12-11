@@ -27,6 +27,5 @@ func TestGen_trojan (t *testing.T) {
 	tc.Assert (tc.Output.Protocol,        tc.Input[Protocol])
 	tc.Assert (trojan.Address,            tc.Input[ServerAddress])
 	tc.Assert (trojan.Port,               tc.Input[ServerPort])
-	tc.Assert (trojan.Method,             tc.Input[SS_Method])
-	tc.Assert (trojan.Password,           tc.Input[SS_Password])
+	tc.Assert (trojan.Password,           tc.Input[Trojan_Password])
 }

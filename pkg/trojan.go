@@ -24,7 +24,7 @@ func Gen_trojan (args URLmap) (dst *core.OutboundDetourConfig, e error) {
                 },
                 "tag": "proxy"
              }`,
-			args[ServerAddress], args[ServerPort], args[SS_Method],
+			args[ServerAddress], args[ServerPort], args[Trojan_Password],
 		),
 	); nil != e {
 		// log
