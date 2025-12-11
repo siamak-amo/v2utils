@@ -169,7 +169,12 @@ func (opt Opt) Do() {
 			break;
 
 		case CMD_TEST:
-			log.Errorf("Not Implemented -- Testing URL: `%s`\n", ln);
+			if opt.Test_URL(ln) {
+				// TODO: On verbose, print additional info
+				println(ln)
+			} else {
+				log.Infof("Broken URL '%s'\n", ln);
+			}
 			break;
 		}
 	}
