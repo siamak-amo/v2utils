@@ -5,6 +5,9 @@ import (
 	"os"
 	"fmt"
 	"bufio"
+	"strings"
+
+	"path/filepath"
 	"golang.org/x/term"
 
 	flag "github.com/spf13/pflag"
@@ -16,6 +19,7 @@ func (opt *Opt) RegisterFlag() {
 	opt.in_file = flag.String ("input", "", "path to proxy URLs file");
 	opt.template_file = flag.String ("template", "", "path to json template file");
 	opt.output_dir = flag.String ("output", "", "output directory path");
+	opt.configs = flag.String ("config", "", "path to config file or dir");
 	opt.Verbose = flag.Bool ("verbose", false, "verbose");
 
 	flag.Parse();
@@ -58,6 +62,52 @@ func (opt *Opt) Set_rd_stdin() {
 	}
 }
 
+// Gives file path to json config files
+func (opt *Opt) Set_rd_cfg_stdin() {
+	opt.GetInput = func() (string, bool) { return "-", true; }
+}
+
+func (opt *Opt) Set_rd_cfg() {
+	fileInfo, err := os.Stat(*opt.configs);
+	if nil != err {
+		log.Errorf("%v\n", err);
+		opt.GetInput = func() (string, bool) { return "", true; }
+		return;
+	}
+	if fileInfo.IsDir() {
+		// Find all .json files here
+		jsonFiles := []string{}
+		filepath.Walk(
+			*opt.configs,
+			func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if strings.HasSuffix(info.Name(), ".json") {
+					jsonFiles = append(jsonFiles, path)
+				}
+				return nil
+			},
+		);
+		opt.GetInput = func() (string, bool) {
+			if len(jsonFiles) == 0 {
+				return "", true
+			} else {
+				_f := jsonFiles[0]
+				jsonFiles = jsonFiles[1:]
+				return _f, false
+			}
+		}
+	} else {
+		opt.GetInput = func() (string, bool) {
+			if !strings.HasSuffix(*opt.configs, ".json") {
+				return "", true
+			}
+			return *opt.configs , true;
+		}
+	}
+}
+
 // returns negative on fatal failures
 func (opt *Opt) ParseFlags() int {
 	opt.RegisterFlag();
@@ -69,15 +119,31 @@ func (opt *Opt) ParseFlags() int {
 	}
 	switch (argv[0]) {
 	case "convert","CONVERT", "conv", "c","C":
-		opt.Cmd = CMD_CONVERT;
+		if "" != *opt.configs {
+			opt.Cmd = CMD_CONVERT_CFG;
+		} else {
+			// Default: converting URLs (stdin / --url)
+			opt.Cmd = CMD_CONVERT;
+		}
 		break;
+
 	case "test","Test","TEST", "t","T":
-		opt.Cmd = CMD_TEST;
+		if "" != *opt.configs {
+			// For Testing config (.json) files
+			opt.Cmd = CMD_TEST_CFG;
+		} else {
+			// Default: testing URLs
+			opt.Cmd = CMD_TEST;
+		}
 		break;
+
 	case "run","Run","RUN", "r","R":
-		opt.Cmd = CMD_RUN
-		if "" == *opt.url {
-			println ("Run command needs a URL (--url).");
+		if "" != *opt.configs {
+			opt.Cmd = CMD_RUN_CFG;
+		} else if "" != *opt.url {
+			opt.Cmd = CMD_RUN;
+		} else {
+			log.Errorf("Run command needs a URL (--url) or config file (--config).");
 			return -1
 		}
 		break;
@@ -113,6 +179,15 @@ func (opt *Opt) Init() int {
 		} else {
 			opt.Set_rd_stdin();
 		}
+		break;
+
+	case CMD_CONVERT_CFG, CMD_TEST_CFG, CMD_RUN_CFG:
+		if "-" == *opt.configs {
+			opt.Set_rd_cfg_stdin();
+		} else {
+			opt.Set_rd_cfg();
+		}
+		break;
 	}
 	return 0;
 }
@@ -166,6 +241,18 @@ func (opt Opt) Do() {
 			} else {
 				log.Infof("Broken URL '%s'\n", ln);
 			}
+			break;
+
+		case CMD_TEST_CFG:
+			log.Errorf("(%s) CMD_TEST_CFG -- Not Implemented.\n", ln);
+			break;
+
+		case CMD_RUN_CFG:
+			log.Errorf("(%s) CMD_RUN_CFG -- Not Implemented.\n", ln);
+			break;
+
+		case CMD_CONVERT_CFG:
+			log.Errorf("(%s) CMD_CONVERT_CFG -- Not Implemented.\n", ln);
 			break;
 		}
 	}

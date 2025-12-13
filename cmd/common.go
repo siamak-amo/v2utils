@@ -21,9 +21,12 @@ import (
 )
 
 const (
-	CMD_CONVERT int = iota
+	CMD_CONVERT int = iota // URL
+	CMD_CONVERT_CFG // json
 	CMD_TEST
+	CMD_TEST_CFG
 	CMD_RUN
+	CMD_RUN_CFG
 ) // commands
 
 type Opt struct {
@@ -33,6 +36,7 @@ type Opt struct {
 
 	url *string
 	in_file *string // input URLs file path
+	configs *string // file or dir for testing
 	output_dir *string // output file(s) dir
 	template_file *string // template file path
 
