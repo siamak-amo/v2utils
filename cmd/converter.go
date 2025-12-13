@@ -18,8 +18,9 @@ func (opt Opt) Convert_url2json(url string) (error) {
 		return nil // not fatal
 	}
 
-	if err := opt.CFG_Out(); nil != err {
-		return err // IO error is fatal (invalid paths / broken pipes)
+	if err = opt.CFG_Out(url); nil != err {
+		log.Errorf("%v", err)
+		return err // IO error is fatal (invalid path / broken pipe)
 	}
 	return nil
 }

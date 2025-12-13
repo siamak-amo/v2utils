@@ -168,7 +168,7 @@ func (opt Opt) Do() {
 					println(ln)
 				}
 				if "" != *opt.output_dir {
-					opt.CFG_Out(); // Also generate json files
+					opt.CFG_Out(ln); // Also generate json files
 				}
 			} else {
 				log.Infof("Broken URL '%s'\n", ln);

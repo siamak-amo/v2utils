@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"strings"
 
-	"hash/fnv"
+	"crypto/md5"
 	"encoding/hex"
 	"path/filepath"
 
@@ -44,12 +44,15 @@ type Opt struct {
 	Xray_instance *core.Instance // xray-core client instance
 };
 
-// generates filename based on: hash(file_content)
-func (opt Opt) GetOutput_filepath(file_content []byte) string {
-	h := fnv.New64a()
-	h.Write(file_content)
+// generates filename based on: hash(url)
+func (opt Opt) GetOutput_filepath(url []byte) string {
+	h := md5.New()
+	h.Write(url)
 	return filepath.Join (*opt.output_dir,
-		fmt.Sprintf("config_%s.json", hex.EncodeToString(h.Sum(nil))),
+		fmt.Sprintf(
+			"config_%s.json",
+			hex.EncodeToString(h.Sum(nil))[0:16],
+		),
 	)
 }
 
