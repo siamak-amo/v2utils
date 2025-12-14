@@ -29,7 +29,7 @@ func Set_Default_TestConfig(url string) (*conf.Config) {
 	return cf
 }
 
-func (opt Opt) test_Proxy() bool {
+func (opt Opt) DoTest() bool {
 	if e := opt.Run_Xray(); nil != e {
 		log.Errorf("Could not run the xray server - %v\n", e)
 		return false
@@ -73,7 +73,7 @@ func (opt *Opt) Test_URL(url string) bool {
 	if e := opt.Init_Outbound_byURL(url); nil != e {
 		return false
 	}
-	return opt.test_Proxy();
+	return opt.DoTest();
 }
 
 func (opt *Opt) Test_CFG(path string) bool {
@@ -86,5 +86,5 @@ func (opt *Opt) Test_CFG(path string) bool {
 	// having them may cause true-negative for us
 	// as the inbound proxy port(s) might be inuse.
 	opt.CFG.InboundConfigs = nil
-	return opt.test_Proxy();
+	return opt.DoTest();
 }
