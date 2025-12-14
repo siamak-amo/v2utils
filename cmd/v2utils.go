@@ -161,8 +161,20 @@ func (opt Opt) Do() {
 			break;
 
 		case CMD_RUN_CFG:
-			log.Errorf("(%s) CMD_RUN_CFG -- Not Implemented.\n", ln);
-			break;
+			// Run only uses the first json file @ln, so we used return here
+			opt.template_file = &ln
+			if "-" != ln {
+				log.Infof("Running xray-core with config: %s\n", ln)
+			}
+			if e := opt.Init_CFG(); nil != e {
+				log.Errorf("Loading config failed - %v\n", e)
+				return;
+			}
+			if e := opt.Exec_Xray(); nil != e {
+				log.Errorf("Exec xray-core failed - %v\n", e)
+				return;
+			}
+			return;
 
 		case CMD_CONVERT_CFG:
 			log.Errorf("(%s) CMD_CONVERT_CFG -- Not Implemented.\n", ln);
