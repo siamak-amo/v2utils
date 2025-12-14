@@ -43,6 +43,7 @@ type Opt struct {
 	configs *string // file or dir for testing
 	output_dir *string // output file(s) dir
 	template_file *string // template file path
+	rm *bool // remove files if broken or invalid
 
 	scanner *bufio.Scanner
 	GetInput func() (string, bool)

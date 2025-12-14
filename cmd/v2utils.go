@@ -16,6 +16,7 @@ func (opt *Opt) RegisterFlag() {
 	opt.output_dir = flag.String ("output", "", "output directory path");
 	opt.configs = flag.String ("config", "", "path to config file or dir");
 	opt.Verbose = flag.Bool ("verbose", false, "verbose");
+	opt.rm = flag.Bool ("rm", false, "remove broken and invalid files")
 
 	flag.Parse();
 }
@@ -164,7 +165,14 @@ func (opt Opt) Do() {
 					println(ln)
 				}
 			} else {
-				log.Infof("Broken config file %s\n", ln)
+				if *opt.rm {
+					fmt.Printf("Broken file %s was removed.\n", ln)
+					if e := os.Remove(ln); nil != e {
+						log.Errorf("Could not remove %s - %v\n", ln, e)
+					}
+				} else {
+					log.Infof("Broken config file %s\n", ln)
+				}
 			}
 			break;
 
