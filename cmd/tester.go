@@ -75,3 +75,12 @@ func (opt *Opt) Test_URL(url string) bool {
 	}
 	return opt.test_Proxy();
 }
+
+func (opt *Opt) Test_CFG(path string) bool {
+	opt.template_file = &path;
+	if e := opt.Init_CFG(); nil != e {
+		log.Infof("Invalid config file `%s' was ignored.\n", path)
+		return false
+	}
+	return opt.test_Proxy();
+}

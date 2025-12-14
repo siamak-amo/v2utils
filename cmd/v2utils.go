@@ -157,7 +157,15 @@ func (opt Opt) Do() {
 
 			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 		case CMD_TEST_CFG:
-			log.Errorf("(%s) CMD_TEST_CFG -- Not Implemented.\n", ln);
+			if opt.Test_CFG(ln) {
+				if *opt.Verbose {
+					fmt.Printf("config file `%s':  OK.\n", ln)
+				} else {
+					println(ln)
+				}
+			} else {
+				log.Infof("Broken config file %s\n", ln)
+			}
 			break;
 
 		case CMD_RUN_CFG:
