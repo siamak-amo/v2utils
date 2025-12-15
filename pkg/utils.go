@@ -73,3 +73,18 @@ func Gen_outbound(args URLmap) (dst []conf.OutboundDetourConfig, e error) {
 }
 
 
+func Gen_URL(src *conf.OutboundDetourConfig) string {
+	switch (src.Protocol) {
+	case "vless":
+		if u := Gen_vless_URL(src); nil != u {
+			return u.String()
+		}
+	case "vmess":
+		break;
+	case "ss", "shadowsocks":
+		break;
+	case "trojan":
+		break;
+	}
+	return ""
+}

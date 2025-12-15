@@ -4,6 +4,7 @@ package pkg
 import (
 	"fmt"
 	"errors"
+	"encoding/json"
 	"github.com/xtls/xray-core/infra/conf"
 )
 
@@ -131,4 +132,25 @@ func Gen_streamSettings(args URLmap) (dst *conf.StreamConfig, e error) {
 		return
 	}
 	return
+}
+
+
+
+// Only for generating URLs //
+
+// This type is not compatible with xray-core.
+type TCPHeaderConfig struct {
+	Type string						`json:"type"`
+	Request struct {
+		Path string					`json:"path"`
+		Headers map[string]string	`json:"headers"`
+	}
+}
+
+func encode_tcp_header(src []byte) (TCPHeaderConfig, error) {
+	v := TCPHeaderConfig{}
+	if e := json.Unmarshal(src, &v); nil != e {
+		return v,e
+	}
+	return v,nil
 }

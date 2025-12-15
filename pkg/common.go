@@ -4,6 +4,7 @@ package pkg
 import (
 	"errors"
 	"strings"
+	"net/url"
 	"encoding/json"
 )
 
@@ -111,4 +112,10 @@ func (m Str2Str) Pop(key string) (string) {
 		}
 	}
 	return ""
+}
+
+func AddQuery(u url.Values, key,val string) {
+	if "" != key  &&  "" != val {
+		u.Add(key, val)
+	}
 }
