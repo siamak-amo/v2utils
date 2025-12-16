@@ -124,6 +124,8 @@ type VLessCFG OutboundDetourConfig[VLessVnext]
 type VmessVnext VXessOutboundConfig[VXessOutboundVnext[VMessAccount]]
 type VMessCFG OutboundDetourConfig[VmessVnext]
 
+type SSCFG ServerConfig[ShadojanServer]
+type TrojanCFG ServerConfig[ShadojanServer]
 type ServerCFG OutboundDetourConfig[ServerConfig[ShadojanServer]]
 
 type StreamConfig struct {

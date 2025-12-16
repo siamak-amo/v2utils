@@ -3,6 +3,8 @@ package pkg
 
 import (
 	"fmt"
+	"net/url"
+	"encoding/json"
 	"github.com/xtls/xray-core/infra/conf"
 )
 
@@ -35,3 +37,23 @@ func Gen_trojan (args URLmap) (dst *conf.OutboundDetourConfig, e error) {
     }
 	return
 } 
+
+func Gen_trojan_URL(src *conf.OutboundDetourConfig) *url.URL {
+	var trojan TrojanCFG;
+	if e := json.Unmarshal (*src.Settings, &trojan); nil != e {
+		return nil
+	}
+	u := &url.URL{ Scheme: "trojan" }
+	if 0 == len(trojan.Servers) {
+		return nil
+	}
+
+	server := trojan.Servers[0]
+	q := u.Query()
+	u.User = url.User(server.Password)
+	u.Host = fmt.Sprintf ("%s:%d", server.Address, server.Port)
+	Init_trojanURL_stream (src.StreamSetting, q);
+
+	u.RawQuery = q.Encode()
+	return u
+}
