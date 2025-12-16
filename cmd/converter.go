@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	log "github.com/siamak-amo/v2utils/log"
+	pkg "github.com/siamak-amo/v2utils/pkg"
 )
 
 // Converts proxy URL @url to template @opt.Template
@@ -67,7 +68,10 @@ func (opt Opt) CFG_Out(url string) (error) {
 
 // URL generator
 func (opt Opt) Convert_conf2json() string {
-	if url := Gen_URL(opt.CFG); nil != url {
+	if 0 >= len(opt.CFG.OutboundConfigs) {
+		return ""
+	}
+	if url := pkg.Gen_URL(&opt.CFG.OutboundConfigs[0]); nil != url {
 		return url.String()
 	}
 	return ""

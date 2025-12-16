@@ -81,9 +81,9 @@ func Gen_URL(src *conf.OutboundDetourConfig) *url.URL {
 	case "vmess":
 		return Gen_vmess_URL(src);
 	case "ss", "shadowsocks":
-		break;
+		return Gen_ss_URL(src);
 	case "trojan":
-		break;
+		return Gen_trojan_URL(src);
 	}
 	return nil
 }
