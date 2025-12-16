@@ -4,7 +4,12 @@ package pkg
 import (
 	"fmt"
 	"errors"
+	"strconv"
+	"strings"
+
+	"net/url"
 	"encoding/json"
+
 	"github.com/xtls/xray-core/infra/conf"
 )
 
@@ -153,4 +158,111 @@ func encode_tcp_header(src []byte) (TCPHeaderConfig, error) {
 		return v,e
 	}
 	return v,nil
+}
+
+
+type VlessURL_stream_handler  func(src *conf.StreamConfig, dst url.Values)
+type VmessURL_stream_handler  func(src *conf.StreamConfig, dst map[string]string)
+type SSURL_stream_handler     func(src *conf.StreamConfig, dst url.Values)
+type TrojanURL_stream_handler func(src *conf.StreamConfig, dst url.Values)
+
+var (
+	Init_vlessURL_stream  VlessURL_stream_handler  = __set_kv_stream_vless_trojan
+	Init_vmessURL_stream  VmessURL_stream_handler  = __set_kv_stream_vmess
+	Init_ssURL_stream     SSURL_stream_handler     = __set_kv_stream_ss
+	Init_trojanURL_stream TrojanURL_stream_handler = __set_kv_stream_vless_trojan
+)
+
+// vless / trojan compatible
+func __set_kv_stream_vless_trojan(src *conf.StreamConfig, dst url.Values) {
+	if nil != src {
+		if nil != src.Network {
+			net := string(*src.Network)
+			AddQuery (dst, "type", net)
+			switch (net) {
+			case "tcp":
+				if v,e := encode_tcp_header(src.TCPSettings.HeaderConfig); nil == e {
+					AddQuery (dst, "headerType", v.Type)
+					AddQuery (dst, "path", v.Request.Path)
+					AddQuery (dst, "host", v.Request.Headers["Host"])
+				}
+				break;
+			case "grpc":
+				AddQuery (dst, "serviceName", src.GRPCSettings.ServiceName)
+				AddQuery (dst, "authority", src.GRPCSettings.Authority)
+				if src.GRPCSettings.MultiMode {
+					AddQuery (dst, "mode", "multi")
+				}
+				break;
+			case "ws":
+				AddQuery (dst, "host", src.WSSettings.Host)
+				AddQuery (dst, "path", src.WSSettings.Path)
+				break;
+			}
+		} else {
+			AddQuery (dst, "type", "tcp")
+		}
+
+		sec := src.Security
+		AddQuery (dst, "security", sec)
+		switch (sec) {
+		case "tls":
+			AddQuery (dst, "allowInsecure", strconv.FormatBool(src.TLSSettings.Insecure))
+			AddQuery (dst, "sni", src.TLSSettings.ServerName)
+			AddQuery (dst, "fp", src.TLSSettings.Fingerprint)
+			AddQuery (dst, "alpn", strings.Join(*src.TLSSettings.ALPN, ","))
+			break;
+		case "reality":
+			AddQuery (dst, "fp", src.REALITYSettings.Fingerprint)
+			AddQuery (dst, "spx", src.REALITYSettings.SpiderX)
+			AddQuery (dst, "pbk", src.REALITYSettings.PublicKey)
+			AddQuery (dst, "sid", src.REALITYSettings.ShortId)
+			AddQuery (dst, "sni", src.REALITYSettings.ServerNames[0])
+			AddQuery (dst, "mode", src.REALITYSettings.Type)
+			break;
+		}
+	}
+}
+
+// vmess compatible
+func __set_kv_stream_vmess(src *conf.StreamConfig, dst map[string]string) {
+	if nil != src && nil != src.Network {
+		net := string(*src.Network);
+		dst["net"] = net
+		switch (net) {
+		case "tcp":
+			if v,e := encode_tcp_header(src.TCPSettings.HeaderConfig); nil == e {
+				dst["type"] = v.Type
+				dst["path"] = v.Request.Path
+				dst["host"] = v.Request.Headers["Host"]
+			}
+			break;
+		case "grpc":
+			dst["path"] = src.GRPCSettings.ServiceName
+			dst["authority"] = src.GRPCSettings.Authority
+			if src.GRPCSettings.MultiMode {
+				dst["type"] = "multi"
+			}
+			break;
+
+		case "ws":
+			dst["host"] = src.WSSettings.Host
+			dst["path"] = src.WSSettings.Path
+			dst["type"] = "none"
+			break;
+		}
+		if sec := src.Security; "tls" == sec {
+			dst["tls"] = "tls";
+			dst["fp"] = src.TLSSettings.Fingerprint
+			dst["allowInsecure"] = strconv.FormatBool(src.TLSSettings.Insecure)
+			dst["sni"] = src.TLSSettings.ServerName
+			dst["alpn"] = strings.Join(*src.TLSSettings.ALPN, ",")
+		}
+	} else {
+		dst["net"] = "tcp";
+	}
+}
+
+func __set_kv_stream_ss(src *conf.StreamConfig, dst url.Values) {
+	// ??
 }

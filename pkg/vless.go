@@ -3,7 +3,6 @@ package pkg
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
 	"net/url"
 	"encoding/json"
@@ -61,54 +60,7 @@ func Gen_vless_URL(src *conf.OutboundDetourConfig) *url.URL {
 	q := u.Query()
 	AddQuery (q, "level", strconv.Itoa(vnext.Users[0].Level))
 	AddQuery (q, "encryption", vnext.Users[0].Encryption)
-
-	if nil != src.StreamSetting {
-		stream := *src.StreamSetting
-
-		if nil != stream.Network {
-			net := string(*stream.Network)
-			AddQuery (q, "type", net)
-			switch (net) {
-			case "tcp":
-				if v,e := encode_tcp_header(stream.TCPSettings.HeaderConfig); nil == e {
-					AddQuery (q, "headerType", v.Type)
-					AddQuery (q, "path", v.Request.Path)
-					AddQuery (q, "host", v.Request.Headers["Host"])
-				}
-				break;
-			case "grpc":
-				AddQuery (q, "serviceName", stream.GRPCSettings.ServiceName)
-				AddQuery (q, "multiMode", strconv.FormatBool(stream.GRPCSettings.MultiMode))
-				AddQuery (q, "authority", stream.GRPCSettings.Authority)
-				break;
-			case "ws":
-				AddQuery (q, "host", stream.WSSettings.Host)
-				AddQuery (q, "path", stream.WSSettings.Path)
-				break;
-			}
-		} else {
-			AddQuery (q, "type", "tcp")
-		}
-
-		sec := stream.Security
-		AddQuery (q, "security", sec)
-		switch (sec) {
-		case "tls":
-			AddQuery (q, "allowInsecure", strconv.FormatBool(stream.TLSSettings.Insecure))
-			AddQuery (q, "sni", stream.TLSSettings.ServerName)
-			AddQuery (q, "fp", stream.TLSSettings.Fingerprint)
-			AddQuery (q, "alpn", strings.Join(*stream.TLSSettings.ALPN, ","))
-			break;
-		case "reality":
-			AddQuery (q, "fp", stream.REALITYSettings.Fingerprint)
-			AddQuery (q, "spx", stream.REALITYSettings.SpiderX)
-			AddQuery (q, "pbk", stream.REALITYSettings.PublicKey)
-			AddQuery (q, "sid", stream.REALITYSettings.ShortId)
-			AddQuery (q, "sni", stream.REALITYSettings.ServerNames[0])
-			AddQuery (q, "mode", stream.REALITYSettings.Type)
-			break;
-		}
-	}
+	Init_vlessURL_stream(src.StreamSetting, q)
 
 	u.RawQuery = q.Encode()
 	return u
