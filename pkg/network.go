@@ -210,7 +210,9 @@ func __set_kv_stream_vless_trojan(src *conf.StreamConfig, dst url.Values) {
 			AddQuery (dst, "allowInsecure", strconv.FormatBool(src.TLSSettings.Insecure))
 			AddQuery (dst, "sni", src.TLSSettings.ServerName)
 			AddQuery (dst, "fp", src.TLSSettings.Fingerprint)
-			AddQuery (dst, "alpn", strings.Join(*src.TLSSettings.ALPN, ","))
+			if nil != src.TLSSettings.ALPN {
+				AddQuery (dst, "alpn", strings.Join(*src.TLSSettings.ALPN, ","))
+			}
 			break;
 		case "reality":
 			AddQuery (dst, "fp", src.REALITYSettings.Fingerprint)
@@ -256,7 +258,9 @@ func __set_kv_stream_vmess(src *conf.StreamConfig, dst map[string]string) {
 			dst["fp"] = src.TLSSettings.Fingerprint
 			dst["allowInsecure"] = strconv.FormatBool(src.TLSSettings.Insecure)
 			dst["sni"] = src.TLSSettings.ServerName
-			dst["alpn"] = strings.Join(*src.TLSSettings.ALPN, ",")
+			if nil != src.TLSSettings.ALPN {
+				dst["alpn"] = strings.Join(*src.TLSSettings.ALPN, ",")
+			}
 		}
 	} else {
 		dst["net"] = "tcp";
