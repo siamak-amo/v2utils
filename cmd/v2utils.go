@@ -24,6 +24,8 @@ import (
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
 
+const Version = "1.1";
+
 func (opt *Opt) GetArgs() {
 	const optstr = "u:f:t:o:c:rvh"
 	lopts := []getopt.Option{
@@ -56,7 +58,7 @@ func (opt *Opt) GetArgs() {
 		case 'v':
 			opt.verbose = true; break;
 		case 'h':
-			fmt.Fprintf(os.Stderr, `v2utils - xray-core compatible utility
+			fmt.Fprintf(os.Stderr, `v2utils v%s - xray-core compatible utility
 Usage:  v2utils COMMAND [OPTIONS]
 
 COMMAND:
@@ -87,7 +89,7 @@ Examples:
 
     # convert outbound of json files to URL:
     $ v2utils convert --config /path/to/configs_dir
-`);
+`, Version);
 			os.Exit(0);
 		}
 	}
