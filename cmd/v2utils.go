@@ -205,11 +205,18 @@ func (opt Opt) Do() {
 
 		switch (opt.Cmd) {
 		case CMD_CONVERT:
-			if e := opt.Convert_url2json(ln); nil != e {
-				if opt.verbose {
-					log.Warnf("Convert error: %v\n", e)
+			if "" != opt.template_file {
+				if e := opt.V2.Apply_template(opt.template_file); nil != e {
+					log.Errorf("broken or invalid template - %v\n", e);
+				}
+			} else {
+				// No template is provided, using the default one
+				if e := opt.V2.Apply_template_bystr(opt.Get_Default_Template()); nil != e {
+					panic(e); // it's ours, the default template is broken
 				}
 			}
+			opt.V2.Apply_URL(ln);
+			opt.MK_josn_output(ln);
 			break;
 
 		case CMD_RUN:
@@ -221,11 +228,11 @@ func (opt Opt) Do() {
 				log.Errorf("Invalid template - %v\n", e)
 				return;
 			}
-			if e := opt.Init_Outbound_byURL(ln); nil != e {
+			if e := opt.V2.Init_Outbound_byURL(ln); nil != e {
 				log.Errorf("Invalid or unsupported URL - %v\n", e)
 				break;
 			}
-			if e := opt.Exec_Xray(); nil != e {
+			if e := opt.V2.Exec_Xray(); nil != e {
 				log.Errorf("Exec xray-core failed - %v\n", e)
 				break;
 			}
@@ -252,13 +259,13 @@ func (opt Opt) Do() {
 			}
 			// Generating json files if appropriate
 			if b && "" != opt.output_dir {
-				opt.CFG_Out(ln);
+				opt.MK_josn_output(ln);
 			}
 			break;
 
 			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 		case CMD_TEST_CFG:
-			b := opt.Test_CFG(ln)
+			b := opt.V2.Test_CFG(ln)
 			if ! opt.reverse {
 				if opt.verbose {
 					if b {
@@ -300,7 +307,7 @@ func (opt Opt) Do() {
 				log.Errorf("Loading config failed - %v\n", e)
 				return;
 			}
-			if e := opt.Exec_Xray(); nil != e {
+			if e := opt.V2.Exec_Xray(); nil != e {
 				log.Errorf("Exec xray-core failed - %v\n", e)
 				return;
 			}
@@ -312,9 +319,9 @@ func (opt Opt) Do() {
 				log.Errorf("Loading config failed - %v\n", e)
 				return;
 			}
-			res, e := opt.Convert_conf2url();
+			res, e := opt.V2.Convert_conf2url();
 			if nil != e {
-				log.Warnf ("Converting to URL failed - %v\n", e);
+				log.Warnf ("Converting '%s' to URL failed - %v\n", ln, e);
 			} else {
 				fmt.Println(res);
 			}

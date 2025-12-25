@@ -6,22 +6,13 @@ import (
 	"fmt"
 	"net"
 	"bufio"
-	"strings"
 
-	"io/ioutil"
 	"crypto/md5"
 	"encoding/hex"
 	"path/filepath"
-	"golang.org/x/term"
 
-	pkg "github.com/siamak-amo/v2utils/pkg"
 	log "github.com/siamak-amo/v2utils/log"
-
-	"github.com/xtls/xray-core/core"
-	"github.com/xtls/xray-core/infra/conf"
-	"github.com/xtls/xray-core/infra/conf/serial"
-	"github.com/xtls/xray-core/main/confloader"
-	_ "github.com/xtls/xray-core/main/confloader/external"
+	utils "github.com/siamak-amo/v2utils/utils"	
 )
 
 const (
@@ -34,9 +25,8 @@ const (
 ) // commands
 
 type Opt struct {
-	Cmd int // CMD_xxx
-	CFG *conf.Config
-
+	// User options
+	Cmd int                 // CMD_xxx
 	url string
 	configs string			// file or dir for testing
 	output_dir string		// output file(s) dir
@@ -49,11 +39,11 @@ type Opt struct {
 	scanner *bufio.Scanner
 	GetInput func() (string, bool)
 
-	Xray_instance *core.Instance // xray-core client instance
+	V2 utils.V2utils
 };
 
 // generates filename based on: hash(url)
-func (opt Opt) GetOutput_filepath(url []byte) string {
+func (opt Opt) gen_output_filepath(url []byte) string {
 	h := md5.New()
 	h.Write(url)
 	return filepath.Join (opt.output_dir,
@@ -64,71 +54,22 @@ func (opt Opt) GetOutput_filepath(url []byte) string {
 	)
 }
 
-func GetFormatByExtension(filename string) string {
-	idx := strings.LastIndexByte(filename, '.')
-	if idx == -1 {
-		return ""
-	}
-	switch strings.ToLower(filename[idx+1:]) {
-	case "pb", "protobuf":
-		return "protobuf"
-	case "yaml", "yml":
-		return "yaml"
-	case "toml":
-		return "toml"
-	case "json", "jsonc":
-		return "json"
-	default:
-		return ""
-	}
-}
-
-// Applies the template opt.template_path to opt.CFG
-func (opt *Opt) Apply_template() error {
-	t := core.ConfigSource{
-		Name: opt.template_file,
-		Format: GetFormatByExtension(opt.template_file),
-	}
-	r, err := confloader.LoadConfig(t.Name)
-	if nil != err {
-		return err
-	} else {
-		c, err := serial.ReaderDecoderByFormat[t.Format](r)
-		if nil != err {
-			return err
-		}
-		opt.CFG = c;
-	}
-	return nil
-}
-
-func (opt *Opt) Apply_Default_template() {
-	var e error
-	if opt.CFG, e = pkg.Gen_main(opt.Get_Default_Template()); nil != e {
-		panic(e) // it's ours. broken default template
-	}
-}
-
 // Applies opt.template_path  or  the default template
 //         opt.template_path == "-" means to read from stdin
 func (opt *Opt) Init_CFG() error {
 	var e error
 	if "-" == opt.template_file {
-		if term.IsTerminal (int(os.Stdin.Fd())) {
+		if Isatty(os.Stdin) {
 			println ("Reading json config from STDIN until EOF:")
 		}
-		res, err := ioutil.ReadAll(os.Stdin)
-		if nil != err {
-			return err
-		}
-		opt.CFG, e = pkg.Gen_main(string(res))
+		e = opt.V2.Apply_template_byio (os.Stdin);
 		return e;
-	}
-
-	if "" != opt.template_file {
-		return opt.Apply_template()
 	} else {
-		opt.Apply_Default_template();
+		if "" != opt.template_file {
+			return opt.V2.Apply_template (opt.template_file)
+		} else {
+			return opt.V2.Apply_template_bystr (opt.Get_Default_Template());
+		}
 	}
 	return nil
 }
@@ -145,21 +86,33 @@ func (opt *Opt) Get_Default_Template() string {
 	return "";
 }
 
-// Initializes @opt.CFG.OutboundConfig by the provided proxy URL @url
-func (opt *Opt) Init_Outbound_byURL(url string) (error) {
-	var e error
-	var umap pkg.URLmap
+func (opt Opt) MK_josn_output(url string) {
+	if "" == opt.output_dir {
+		opt.V2.CFG_Out(os.Stdout, !Isatty(os.Stdout)); // no indent for tty's
+	} else {
+		// Write to file
+		path := opt.gen_output_filepath([]byte(url))
+		of, err := os.OpenFile(
+			path,
+			os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644,
+		);
+		if err != nil {
+			log.Errorf("File error - %v\n", err)
+			return
+		}
+		defer of.Close()
+		if err := opt.V2.CFG_Out(of, true); nil != err {
+			log.Errorf("Write error - %v\n", err)
+			return
+		} else {
+			log.Verbosef("Wrote: %s\n", path)
+		}
+	}
+}
 
-	// Parse the URL
-	umap, e = pkg.ParseURL(url);
-	if nil != e {
-		return e
-	}
-	// Generate outbound config
-	if opt.CFG.OutboundConfigs, e = pkg.Gen_outbound(umap); nil != e {
-		return e
-	}
-	return nil
+func (opt Opt) Test_URL(url string) bool {
+	opt.V2.Apply_template_bystr(DEF_Test_Template);
+	return opt.V2.Test_URL(url)
 }
 
 // PickPort returns an unused TCP port
@@ -171,91 +124,4 @@ func PickPort() int {
 	}
 	defer listener.Close()
 	return listener.Addr().(*net.TCPAddr).Port
-}
-
-
-//////////////////////////////////////
-//  Read URL/json helper functions  //
-//////////////////////////////////////
-func (opt *Opt) Set_rd_url() {
-	opt.GetInput = func() (string, bool) {
-		return opt.url, true
-	}
-}
-
-func (opt *Opt) Set_rd_file() error {
-	f, err := os.Open(opt.in_file)
-	if nil != err {
-		return err
-	}
-	opt.scanner = bufio.NewScanner(f)
-	opt.GetInput = func() (string, bool) {
-		if opt.scanner.Scan() {
-			return opt.scanner.Text(), false
-		} else {
-			f.Close();
-			return "", true
-		}
-	}
-	return nil
-}
-
-func (opt *Opt) Set_rd_stdin() {
-	if term.IsTerminal (int(os.Stdin.Fd())) {
-		println ("Reading URLs from STDIN until EOF:")
-	}
-	opt.scanner = bufio.NewScanner(os.Stdin)
-	opt.GetInput = func() (string, bool) {
-		if opt.scanner.Scan() {
-			return opt.scanner.Text(), false
-		} else {
-			return "", true
-		}
-	}
-}
-
-// Gives file path to json config files
-func (opt *Opt) Set_rd_cfg_stdin() {
-	opt.GetInput = func() (string, bool) { return "-", true; }
-}
-
-func (opt *Opt) Set_rd_cfg() {
-	fileInfo, err := os.Stat(opt.configs);
-	if nil != err {
-		log.Errorf("%v\n", err);
-		opt.GetInput = func() (string, bool) { return "", true; }
-		return;
-	}
-	if fileInfo.IsDir() {
-		// Find all .json files here
-		jsonFiles := []string{}
-		filepath.Walk(
-			opt.configs,
-			func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				if strings.HasSuffix(info.Name(), ".json") {
-					jsonFiles = append(jsonFiles, path)
-				}
-				return nil
-			},
-		);
-		opt.GetInput = func() (string, bool) {
-			if len(jsonFiles) == 0 {
-				return "", true
-			} else {
-				_f := jsonFiles[0]
-				jsonFiles = jsonFiles[1:]
-				return _f, false
-			}
-		}
-	} else {
-		opt.GetInput = func() (string, bool) {
-			if !strings.HasSuffix(opt.configs, ".json") {
-				return "", true
-			}
-			return opt.configs , true;
-		}
-	}
 }
