@@ -9,10 +9,6 @@ import (
 	"runtime"
 )
 
-func Init() {
-	LogLevel = Verbose;
-}
-
 func Flogf(out *os.File, typ string, format string, args ...interface{}) {
 	if _, file, line, ok := runtime.Caller(2); ok {
 		fmt.Fprintf (out,

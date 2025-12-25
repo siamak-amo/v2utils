@@ -143,6 +143,12 @@ func (opt *Opt) HandleArgs() int {
 
 // returns negative on fatal failures
 func (opt *Opt) Init() int {
+	if opt.verbose {
+		log.LogLevel = log.Verbose;
+	} else {
+		log.LogLevel = log.Warning; // Default level
+	}
+
 	switch (opt.Cmd) {
 	case CMD_RUN:
 		opt.Set_rd_url()
@@ -292,8 +298,6 @@ func main() {
 	if ret := opt.Init(); ret < 0 {
 		os.Exit (-ret);
 	}
-	if opt.verbose {
-		log.LogLevel = log.Verbose;
-	}
+
 	opt.Do(); // The main loop
 }

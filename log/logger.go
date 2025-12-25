@@ -8,10 +8,6 @@ import (
 	"fmt"
 )
 
-func Init() {
-	LogLevel = Error;
-}
-
 func Flogf(out *os.File, typ string, format string, args ...interface{}) {
 	fmt.Fprintf (out,
 		"[%s]  " + format,
