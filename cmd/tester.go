@@ -31,7 +31,7 @@ func Set_Default_TestConfig(url string) (*conf.Config) {
 
 func (opt Opt) DoTest() bool {
 	if e := opt.Run_Xray(); nil != e {
-		log.Errorf("Could not run the xray server - %v\n", e)
+		log.Warnf ("Could not run the xray server - %v\n", e)
 		return false
 	}
 	res := opt.test_http();
@@ -86,5 +86,9 @@ func (opt *Opt) Test_CFG(path string) bool {
 	// having them may cause true-negative for us
 	// as the inbound proxy port(s) might be inuse.
 	opt.CFG.InboundConfigs = nil
+
+	// Logs from the instance, may interfere with our logs
+	opt.CFG.LogConfig.LogLevel = "none"
+
 	return opt.DoTest();
 }

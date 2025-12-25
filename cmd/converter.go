@@ -3,6 +3,7 @@ package main
 
 import (
 	"os"
+	"errors"
 	"encoding/json"
 
 	log "github.com/siamak-amo/v2utils/log"
@@ -44,7 +45,7 @@ func (opt Opt) CFG_Out(url string) (error) {
 	}
 
 	if "" == opt.output_dir {
-		println(b);
+		println (string(b));
 	} else {
 		// Write to file
 		path := opt.GetOutput_filepath([]byte(url))
@@ -67,12 +68,13 @@ func (opt Opt) CFG_Out(url string) (error) {
 }
 
 // URL generator
-func (opt Opt) Convert_conf2json() string {
+func (opt Opt) Convert_conf2url() (string, error) {
 	if 0 >= len(opt.CFG.OutboundConfigs) {
-		return ""
+		return "", errors.New("Empty outbound configs")
 	}
-	if url := pkg.Gen_URL(&opt.CFG.OutboundConfigs[0]); nil != url {
-		return url.String()
+	url := pkg.Gen_URL(&opt.CFG.OutboundConfigs[0]);
+	if nil == url {
+		return "", errors.New("Gen URL failed")
 	}
-	return ""
+	return url.String(), nil
 }

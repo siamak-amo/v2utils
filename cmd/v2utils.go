@@ -98,7 +98,7 @@ Examples:
 // returns negative on fatal failures
 func (opt *Opt) HandleArgs() int {
 	argv := os.Args
-	if len(argv) == 0 {
+	if len(argv) < 2 {
 		fmt.Fprintln(os.Stderr, "error:  missing COMMAND")
 		fmt.Fprintln(os.Stderr, "usage:  v2utils [COMMAND] [OPTIONS]")
 		return -1
@@ -227,7 +227,7 @@ func (opt Opt) Do() {
 				if opt.verbose {
 					log.Infof("`%s` OK.\n", ln)
 				} else {
-					println(ln)
+					fmt.Println(ln)
 				}
 				if "" != opt.output_dir {
 					opt.CFG_Out(ln); // Also generate json files
@@ -243,7 +243,7 @@ func (opt Opt) Do() {
 				if opt.verbose {
 					fmt.Printf("config file `%s':  OK.\n", ln)
 				} else {
-					println(ln)
+					fmt.Println(ln);
 				}
 			} else {
 				if opt.rm {
@@ -279,10 +279,11 @@ func (opt Opt) Do() {
 				log.Errorf("Loading config failed - %v\n", e)
 				return;
 			}
-			if result := opt.Convert_conf2json(); "" != result {
-				fmt.Println(result);
+			res, e := opt.Convert_conf2url();
+			if nil != e {
+				log.Warnf ("Converting to URL failed - %v\n", e);
 			} else {
-				log.Errorf("Converting to URL failed.\n");
+				fmt.Println(res);
 			}
 			break;
 		}
