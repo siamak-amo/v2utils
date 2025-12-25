@@ -72,6 +72,7 @@ func parse_vless_url (u *url.URL) (URLmap) {
 		res[TLS_fp] = params.Pop ("fp")
 		res[TLS_sni] = params.Pop ("sni")
 		res[TLS_ALPN] = params.Pop ("alpn")
+		res[TLS_AllowInsecure] = params.Pop ("allowInsecure")
 		break;
 
 	case "reality":
@@ -141,6 +142,7 @@ func parse_vmess_url (input string) (URLmap, error) {
 		res[TLS_sni] = dst.Pop ("sni")
 		res[TLS_fp] = dst.Pop ("fp")
 		res[TLS_ALPN] = dst.Pop ("alpn")
+		res[TLS_AllowInsecure] = dst.Pop ("allowInsecure")
 	}
 
 	dst.Pop ("aid"); dst.Pop ("scy"); dst.Pop ("ps"); dst.Pop ("v") // unused
@@ -211,6 +213,7 @@ func parse_trojan_url (u *url.URL) (URLmap) {
 		res[TLS_fp] = params.Pop ("fp")
 		res[TLS_sni] = params.Pop ("sni")
 		res[TLS_ALPN] = params.Pop ("alpn")
+		res[TLS_AllowInsecure] = params.Pop ("allowInsecure")
 		break;
 
 	case "reality":
