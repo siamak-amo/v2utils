@@ -84,6 +84,15 @@ the VPN client with the current configuration.
   $ v2utils test --config /path/to/config_dir
   To also delete broken files, pass --rm
 
+* Test json files and rename broken files to .old
+  $ v2utils test --reverse  2>/dev/null \
+                 --config /path/to/config_dir | \
+      while read file; do mv $file $file.old; done
+
+  By default, v2utils uses stdout to print functional configs,
+  while using the reverse option, it only prints broken
+  files and URLs on stdout.
+
 Run command
 -----------
 
