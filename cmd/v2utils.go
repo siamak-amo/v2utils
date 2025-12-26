@@ -126,7 +126,7 @@ func (opt *Opt) Set2_run() int {
 	} else if "" != opt.url {
 		opt.Cmd = CMD_RUN;
 	} else {
-		log.Errorf("Run command needs a URL (--url) or config file (--config).");
+		log.Errorf("Run command needs a URL (--url) or config file (--config).\n");
 		return -1
 	}
 	return 0;
@@ -293,13 +293,18 @@ func (opt Opt) Do() {
 
 			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 		case CMD_TEST_CFG:
+			opt.template_file = ln
+			if e := opt.Init_CFG(); nil != e {
+				log.Errorf("Loading config failed - %v\n", e)
+				continue;
+			}
 			b := opt.V2.Test_CFG(ln)
 			if ! opt.reverse {
 				if opt.verbose {
 					if b {
 						log.Logf("config file '%s':  OK.\n", ln)
 					} else {
-						log.Logf("config file '%s':  Broken.\n", ln, b)
+						log.Logf("config file '%s':  Broken.\n", ln)
 					}
 				} else {
 					if b {
@@ -345,7 +350,7 @@ func (opt Opt) Do() {
 			opt.template_file = ln
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Loading config failed - %v\n", e)
-				return;
+				continue;
 			}
 			res, e := opt.V2.Convert_conf2url();
 			if nil != e {

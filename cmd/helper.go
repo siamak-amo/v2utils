@@ -16,8 +16,12 @@ func Isatty(f *os.File) bool {
 }
 
 func (opt *Opt) Set_rd_url() {
-	opt.GetInput = func() (string, bool) {
-		return opt.url, true
+	if opt.url[0] == '-' {
+		opt.Set_rd_stdin();
+	} else {
+		opt.GetInput = func() (string, bool) {
+			return opt.url, true
+		}
 	}
 }
 
@@ -54,7 +58,7 @@ func (opt *Opt) Set_rd_stdin() {
 
 // Gives file path to json config files
 func (opt *Opt) Set_rd_cfg_stdin() {
-	opt.GetInput = func() (string, bool) { return "-", true; }
+	opt.GetInput = func() (string, bool) { return "-", false; }
 }
 
 func (opt *Opt) Set_rd_cfg() {
