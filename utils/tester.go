@@ -10,6 +10,7 @@ import (
 
 	core "github.com/xtls/xray-core/core"
 	xnet "github.com/xtls/xray-core/common/net"
+	conf "github.com/xtls/xray-core/infra/conf"
 )
 
 const (
@@ -65,7 +66,7 @@ func (v2 *V2utils) Test_URL(url string) bool {
 
 // Tests a config file @path
 func (v2 *V2utils) Test_CFG(path string) bool {
-	if e := v2.Apply_template(path); nil != e {
+	if e := v2.Apply_template(path); nil != e || nil == v2.CFG {
 		return false
 	}
 
@@ -75,7 +76,11 @@ func (v2 *V2utils) Test_CFG(path string) bool {
 	v2.CFG.InboundConfigs = nil
 
 	// Logs from the instance, may interfere with our logs
-	v2.CFG.LogConfig.LogLevel = "none"
+	if nil != v2.CFG.LogConfig {
+		v2.CFG.LogConfig.LogLevel = "none"
+	} else {
+		v2.CFG.LogConfig = &conf.LogConfig{LogLevel: "none"}
+	}
 
 	return v2.doTest();
 }
