@@ -19,6 +19,10 @@ type Test_case struct {
 	exps []Expectation
 };
 
+func init() {
+	Opterr = false;
+}
+
 func fileline() string {
 	if _, file, line, ok := runtime.Caller(2); ok {
 		return fmt.Sprintf ("%s:%d", file, line)
@@ -39,6 +43,11 @@ func (tc *Test_case) Test(t *testing.T) {
 		}
 		if i >= len(tc.exps) {
 			t.Fatalf("\n%s:  Test #%d failed - not enough tests.\n", fileline(), i);
+		}
+		if idx == '?' {
+			// skip invalid options, when opterr is set to false
+			i -= 1
+			continue;
 		}
 		if tc.exps[i].Value != (byte)(idx) {
 			t.Fatalf(`

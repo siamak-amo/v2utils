@@ -85,7 +85,7 @@ func Test_getopt_long_edges(t *testing.T) {
 	tcase.Test(t);
 }
 	
-// Non existing options test
+// non-existing and unexpected options test
 func Test_getopt_nonsexist_opt(t *testing.T) {
 	tcase := Test_case{
 		cfg_optstr: "x:hX:",
@@ -95,10 +95,14 @@ func Test_getopt_nonsexist_opt(t *testing.T) {
 			{"help",       false, 'h'},
 		},
 		argv: []string{
-			"a.out", "-a",  "-xTEST",  "-bBB", "--non-exist",  "-h",
+			"a.out",
+			"XXX", // unexpected
+			"-a",  // non-existing
+			"-xTEST",
+			"-b", "XXX", "--non-exist", // non-existing
+			"-h",
 		},
 		exps: []Expectation{
-			// -a and -b, --non-exist MUST be ignored
 			{'x', "TEST"},
 			{'h', ""},
 		},
