@@ -41,6 +41,10 @@ type Opt struct {
 	V2 utils.V2utils
 };
 
+var (
+	Supported_CFG_Formats = []string{".json", ".toml", ".yaml"}
+)
+
 // generates filename based on: hash(url)
 func (opt Opt) gen_output_filepath(url []byte) string {
 	h := md5.New()

@@ -66,7 +66,7 @@ func (opt *Opt) GetArgs() {
 Usage:  v2utils COMMAND [OPTIONS]
 
 COMMAND:
-      Run:  to execute a Xray intense based on the given configuration
+      Run:  to execute Xray based on the given configuration
      Test:  to test the current configuration has internet access
   Convert:  to convert the current configuration to a different format
 
@@ -291,35 +291,29 @@ func (opt Opt) Do() {
 
 			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 		case CMD_TEST_CFG:
+			res := false
 			opt.template_file = ln
 			if e := opt.Init_CFG(); nil != e {
-				log.Errorf("Loading config failed - %v\n", e)
-				continue;
+				log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
+			} else {
+				println("runnign test...")
+				res = opt.V2.Test_CFG(ln)
 			}
-			b := opt.V2.Test_CFG(ln)
 			if ! opt.reverse {
-				if opt.verbose {
-					if b {
-						log.Logf("config file '%s':  OK.\n", ln)
-					} else {
-						log.Logf("config file '%s':  Broken.\n", ln)
-					}
+				if res {
+					fmt.Println(ln);
 				} else {
-					if b {
-						fmt.Println(ln);
-					} else {
-						log.Infof("Broken config file %s\n", ln)
-					}
+					log.Warnf("config file '%s' is broken\n", ln)
 				}
 			} else { // Only print broken configs
-				if ! b {
+				if !res {
 					fmt.Println(ln);
 				} else {
 					log.Infof("config file '%s':  OK.\n", ln)
 				}
 			}
 
-			if ! b && opt.rm { // We are not in reverse mode here
+			if !res && opt.rm { // We are not in reverse mode here
 				if e := os.Remove(ln); nil != e {
 					log.Errorf("Could not remove %s - %v\n", ln, e)
 				} else {

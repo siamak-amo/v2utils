@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 package main
 
 import (
@@ -13,6 +14,15 @@ import (
 
 func Isatty(f *os.File) bool {
 	return term.IsTerminal(int(f.Fd()))
+}
+
+func HasSuffixs(haystack string, needles []string) bool {
+	for _, needle := range needles {
+		if strings.HasSuffix (haystack, needle) {
+			return true;
+		}
+	}
+	return false;
 }
 
 func (opt *Opt) Set_rd_url() {
@@ -77,7 +87,7 @@ func (opt *Opt) Set_rd_cfg() {
 				if err != nil {
 					return err
 				}
-				if strings.HasSuffix(info.Name(), ".json") {
+				if HasSuffixs(info.Name(), Supported_CFG_Formats) {
 					jsonFiles = append(jsonFiles, path)
 				}
 				return nil
@@ -94,8 +104,8 @@ func (opt *Opt) Set_rd_cfg() {
 		}
 	} else {
 		opt.GetInput = func() (string, bool) {
-			if !strings.HasSuffix(opt.configs, ".json") {
-				log.Infof("file '%s' was ignored - no json extension\n", opt.configs)
+			if ! HasSuffixs(opt.configs, Supported_CFG_Formats) {
+				log.Infof("file '%s' was ignored - invalid extension\n", opt.configs)
 				return "", true
 			}
 			return opt.configs , true;
