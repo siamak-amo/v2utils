@@ -1,7 +1,7 @@
 // defaults.go
 //go:build !debug
 // +build !debug
-package main
+package utils 
 
 const (
 	// Default template for run command

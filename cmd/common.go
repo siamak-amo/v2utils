@@ -4,7 +4,6 @@ package main
 import (
 	"os"
 	"fmt"
-	"net"
 	"bufio"
 
 	"crypto/md5"
@@ -16,11 +15,11 @@ import (
 )
 
 const (
-	CMD_CONVERT int = iota // URL
-	CMD_CONVERT_CFG // json
-	CMD_TEST
+	CMD_CONVERT_URL int = iota
+	CMD_CONVERT_CFG
+	CMD_TEST_URL
 	CMD_TEST_CFG
-	CMD_RUN
+	CMD_RUN_URL
 	CMD_RUN_CFG
 ) // commands
 
@@ -66,20 +65,27 @@ func (opt *Opt) Init_CFG() error {
 		if "" != opt.template_file {
 			return opt.V2.Apply_template (opt.template_file)
 		} else {
-			return opt.V2.Apply_template_bystr (opt.Get_Default_Template());
+			opt.Apply_Default_Template();
 		}
 	}
 	return nil
 }
 
-func (opt *Opt) Get_Default_Template() string {
+func (opt *Opt) Apply_Default_Template() {
+	e := opt.V2.Apply_template_bystr( opt.Get_Default_Template() );
+	if nil != e {
+		panic(e); // it's ours, the default template is broken.
+	}
+}
+
+func (opt Opt) Get_Default_Template() string {
 	switch (opt.Cmd) {
-	case CMD_RUN:
-		return DEF_Run_Template;
-	case CMD_TEST:
-		return DEF_Test_Template;
-	case CMD_CONVERT:
-		return DEF_Run_Template;
+	case CMD_RUN_URL, CMD_RUN_CFG:
+		return utils.DEF_Run_Template;
+	case CMD_TEST_URL, CMD_TEST_CFG:
+		return utils.DEF_Test_Template;
+	case CMD_CONVERT_URL, CMD_CONVERT_CFG:
+		return utils.DEF_Run_Template;
 	}
 	return "";
 }
@@ -107,20 +113,4 @@ func (opt Opt) MK_josn_output(url string) error {
 		}
 	}
 	return nil;
-}
-
-func (opt Opt) Test_URL(url string) bool {
-	opt.V2.Apply_template_bystr(DEF_Test_Template);
-	return opt.V2.Test_URL(url)
-}
-
-// PickPort returns an unused TCP port
-// The port returned is highly likely to be unused, but not guaranteed.
-func PickPort() int {
-	listener, err := net.Listen("tcp4", "127.0.0.1:0")
-	if nil != err {
-		return -1
-	}
-	defer listener.Close()
-	return listener.Addr().(*net.TCPAddr).Port
 }

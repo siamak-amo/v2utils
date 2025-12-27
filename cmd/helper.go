@@ -95,6 +95,7 @@ func (opt *Opt) Set_rd_cfg() {
 	} else {
 		opt.GetInput = func() (string, bool) {
 			if !strings.HasSuffix(opt.configs, ".json") {
+				log.Infof("file '%s' was ignored - no json extension\n", opt.configs)
 				return "", true
 			}
 			return opt.configs , true;

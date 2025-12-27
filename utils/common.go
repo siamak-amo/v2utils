@@ -3,6 +3,7 @@ package utils
 
 import (
 	"io"
+	"errors"
 	"strings"
 
 	pkg "github.com/siamak-amo/v2utils/pkg"
@@ -45,6 +46,9 @@ func (v2 *V2utils) Apply_template(file_path string) error {
 	t := core.ConfigSource{
 		Name: file_path,
 		Format: GetFormatByExtension(file_path),
+	}
+	if "" == t.Format {
+		return errors.New("invalid config file extension")
 	}
 	r, err := confloader.LoadConfig(t.Name)
 	if nil != err {

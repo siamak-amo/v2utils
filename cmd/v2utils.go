@@ -106,7 +106,7 @@ func (opt *Opt) Set2_convert() int {
 		opt.Cmd = CMD_CONVERT_CFG;
 	} else {
 		// Default: converting URLs (stdin / --url)
-		opt.Cmd = CMD_CONVERT;
+		opt.Cmd = CMD_CONVERT_URL;
 	}
 	return 0;
 }
@@ -116,7 +116,7 @@ func (opt *Opt) Set2_test() int {
 		opt.Cmd = CMD_TEST_CFG;
 	} else {
 		// Default: testing URLs
-		opt.Cmd = CMD_TEST;
+		opt.Cmd = CMD_TEST_URL;
 	}
 	return 0;
 }
@@ -124,7 +124,7 @@ func (opt *Opt) Set2_run() int {
 	if "" != opt.configs {
 		opt.Cmd = CMD_RUN_CFG;
 	} else if "" != opt.url {
-		opt.Cmd = CMD_RUN;
+		opt.Cmd = CMD_RUN_URL;
 	} else {
 		log.Errorf("Run command needs a URL (--url) or config file (--config).\n");
 		return -1
@@ -176,11 +176,11 @@ func (opt *Opt) Init() int {
 	}
 
 	switch (opt.Cmd) {
-	case CMD_RUN:
+	case CMD_RUN_URL:
 		opt.Set_rd_url()
 		break;
 
-	case CMD_TEST, CMD_CONVERT:
+	case CMD_TEST_URL, CMD_CONVERT_URL:
 		if "" != opt.output_dir {
 			if err := os.MkdirAll(opt.output_dir, 0o755); nil != err {
 				log.Errorf ("Could not create dir - %v\n", err);
@@ -221,16 +221,14 @@ func (opt Opt) Do() {
 		}
 
 		switch (opt.Cmd) {
-		case CMD_CONVERT:
+		case CMD_CONVERT_URL:
 			if "" != opt.template_file {
 				if e := opt.V2.Apply_template(opt.template_file); nil != e {
 					log.Errorf("broken or invalid template - %v\n", e);
 				}
 			} else {
 				// No template is provided, using the default one
-				if e := opt.V2.Apply_template_bystr(opt.Get_Default_Template()); nil != e {
-					panic(e); // it's ours, the default template is broken
-				}
+				opt.Apply_Default_Template();
 			}
 			if e := opt.V2.Apply_URL(ln); nil != e {
 				log.Warnf("Could not apply URL '%s' - %v\n", ln, e);
@@ -243,11 +241,7 @@ func (opt Opt) Do() {
 			}
 			break;
 
-		case CMD_RUN:
-			if "" == opt.template_file {
-				log.Errorf("No template provided, using the default template\n");
-				fmt.Printf("Default template:%s\n", opt.Get_Default_Template()); // should print this
-			}
+		case CMD_RUN_URL:
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Invalid template - %v\n", e)
 				return;
@@ -256,14 +250,18 @@ func (opt Opt) Do() {
 				log.Errorf("Invalid or unsupported URL - %v\n", e)
 				break;
 			}
+			if "" == opt.template_file {
+				log.Errorf("No template provided, using the default template: %s\n",
+					opt.Get_Default_Template());
+			}
 			if e := opt.V2.Exec_Xray(); nil != e {
 				log.Errorf("Exec xray-core failed - %v\n", e)
 				break;
 			}
-			break;
+			return; // The run command, only uses the first provided URL
 
-		case CMD_TEST:
-			b := opt.Test_URL(ln)
+		case CMD_TEST_URL:
+			b := opt.V2.Test_URL(ln)
 			if ! opt.reverse {
 				if b {
 					if opt.verbose {
@@ -331,20 +329,19 @@ func (opt Opt) Do() {
 			break;
 
 		case CMD_RUN_CFG:
-			// Run only uses the first json file @ln, so we used return here
 			opt.template_file = ln
 			if "-" != ln {
-				log.Infof("Running xray-core with config: %s\n", ln)
+				log.Infof("Loading config: %s\n", ln)
 			}
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Loading config failed - %v\n", e)
-				return;
+				continue;
 			}
 			if e := opt.V2.Exec_Xray(); nil != e {
 				log.Errorf("Exec xray-core failed - %v\n", e)
 				return;
 			}
-			return;
+			return; // The Run Cfg command, only uses the first input
 
 		case CMD_CONVERT_CFG:
 			opt.template_file = ln
