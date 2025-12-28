@@ -25,7 +25,7 @@ import (
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
 
-const Version = "1.1";
+const Version = "1.2";
 
 func (opt *Opt) GetArgs() {
 	const optstr = "u:f:t:o:c:Rrvh"
@@ -296,7 +296,6 @@ func (opt Opt) Do() {
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
 			} else {
-				println("runnign test...")
 				res = opt.V2.Test_CFG(ln)
 			}
 			if ! opt.reverse {

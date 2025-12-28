@@ -25,6 +25,11 @@ func HasSuffixs(haystack string, needles []string) bool {
 	return false;
 }
 
+
+// Set_rd_xxx functions
+// To initialize opt.Getinput to a function that returns
+// proxy URL or `-` to read from stdin.
+
 func (opt *Opt) Set_rd_url() {
 	if opt.url[0] == '-' {
 		opt.Set_rd_stdin();
@@ -66,7 +71,10 @@ func (opt *Opt) Set_rd_stdin() {
 	}
 }
 
-// Gives file path to json config files
+// Set_rd_cfg_xxx functions
+// To initialize opt.GetInput to a function that returns
+// file path (.json, .toml, .yaml), or `-` to read from stdin.
+
 func (opt *Opt) Set_rd_cfg_stdin() {
 	opt.GetInput = func() (string, bool) { return "-", false; }
 }
@@ -79,7 +87,6 @@ func (opt *Opt) Set_rd_cfg() {
 		return;
 	}
 	if fileInfo.IsDir() {
-		// Find all .json files here
 		jsonFiles := []string{}
 		filepath.Walk(
 			opt.configs,
