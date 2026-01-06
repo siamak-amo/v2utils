@@ -4,7 +4,6 @@ package main
 import (
 	"os"
 	"fmt"
-	"bufio"
 
 	"crypto/md5"
 	"encoding/hex"
