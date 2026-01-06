@@ -19,6 +19,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"time"
 	"bufio"
 	"strings"
 
@@ -57,11 +58,12 @@ type Opt struct {
 };
 
 func (opt *Opt) GetArgs() {
-	const optstr = "u:f:t:o:c:Rrvh"
+	const optstr = "u:f:T:t:o:c:Rrvh"
 	lopts := []getopt.Option{
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
 		{"template",      true,  't'},
+		{"Timeout",       true,  'T'},
 		{"output",        true,  'o'},
 		{"input",         true,  'i'},
 		{"reverse",       false, 'r'},
@@ -80,6 +82,12 @@ func (opt *Opt) GetArgs() {
 			opt.configs = getopt.Optarg; break;
 		case 't':
 			opt.template_file = getopt.Optarg; break;
+		case 'T':
+			var e error
+			if utils.TestTimeout, e = time.ParseDuration(getopt.Optarg); nil != e {
+				log.Errorf("set timeout option failed - %v\n", e);
+			}
+			break;
 		case 'i':
 			opt.in_file = getopt.Optarg; break;
 		case 'o':
@@ -111,6 +119,7 @@ OPTIONS:
 Test command options:
     -r, --reverse         only print broken configs on stdout
     -R, --rm              to remove broken config files
+    -T, --timeout         timeout 20s, 20000ms (default 10s)
 
 Examples:
     # run xray by URL:
