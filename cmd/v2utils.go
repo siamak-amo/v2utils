@@ -290,11 +290,11 @@ func (opt Opt) Do() {
 			return; // The run command, only uses the first provided URL
 
 		case CMD_TEST_URL:
-			b := opt.V2.Test_URL(ln)
+			result, duration := opt.V2.Test_URL(ln)
 			if ! opt.reverse {
-				if b {
+				if result {
 					if opt.verbose {
-						log.Infof("`%s` OK.\n", ln)
+						log.Infof("`%s` OK (%d ms).\n", ln, duration)
 					} else {
 						fmt.Println(ln)
 					}
@@ -302,14 +302,14 @@ func (opt Opt) Do() {
 					log.Infof("Broken URL '%s'\n", ln);
 				}
 			} else { // Only print broken urls
-				if ! b {
+				if ! result {
 					fmt.Println(ln);
 				} else if opt.verbose {
-					log.Infof("`%s` OK.\n", ln)
+					log.Infof("`%s` OK (%d ms).\n", ln, duration)
 				}
 			}
 			// Generating json files if applicable
-			if b && "" != opt.output_dir {
+			if result && "" != opt.output_dir {
 				if e := opt.MK_josn_output(ln); nil != e {
 					log.Errorf("IO error: %v\n", e);
 					log.Errorf("Fatal error, exiting.\n");
@@ -321,15 +321,19 @@ func (opt Opt) Do() {
 			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 		case CMD_TEST_CFG:
 			res := false
+			var duration int64
 			opt.template_file = ln
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
 			} else {
-				res = opt.V2.Test_CFG(ln)
+				res, duration = opt.V2.Test_CFG(ln)
 			}
 			if ! opt.reverse {
 				if res {
 					fmt.Println(ln);
+					if opt.verbose {
+						log.Infof ("config file '%s':  OK (%d ms).\n", ln, duration);
+					}
 				} else {
 					log.Warnf("config file '%s' is broken\n", ln)
 				}
@@ -337,7 +341,7 @@ func (opt Opt) Do() {
 				if !res {
 					fmt.Println(ln);
 				} else {
-					log.Infof("config file '%s':  OK.\n", ln)
+					log.Infof("config file '%s':  OK (%d ms).\n", ln, duration)
 				}
 			}
 
