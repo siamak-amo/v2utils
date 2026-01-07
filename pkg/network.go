@@ -69,6 +69,15 @@ func set_stream_xhttp (args URLmap, dst *conf.StreamConfig) (error) {
 	);
 }
 
+func set_stream_httpupgrade (args URLmap, dst *conf.StreamConfig) (error) {
+	args[HTTPUP_Headers] = csv2jsonArray (args[HTTPUP_Headers]);
+	return unmarshal_H (&dst.HTTPUPGRADESettings,
+		fmt.Sprintf (`{"host": "%s", "path": "%s", "headers": {%s}}`,
+			args[HTTPUP_Host], args[HTTPUP_Path], args[HTTPUP_Headers],
+		),
+	);
+}
+
 func set_sec_tls (args URLmap, dst *conf.StreamConfig) (error) {
 	args[TLS_ALPN] = csv2jsonArray (args[TLS_ALPN]);
 	return unmarshal_H (&dst.TLSSettings,
@@ -107,6 +116,9 @@ func set_stream_settings(args URLmap, dst *conf.StreamConfig) (e error) {
 		break;
 	case "xhttp":
 		e = set_stream_xhttp (args, dst)
+		break;
+	case "httpupgrade":
+		e = set_stream_httpupgrade (args, dst)
 		break;
 	default:
 		return not_implemented ("network " + args[Network])
@@ -238,10 +250,22 @@ func __set_kv_stream_vless_trojan(src *conf.StreamConfig, dst url.Values) {
 				AddQuery (dst, "host", src.WSSettings.Host)
 				AddQuery (dst, "path", src.WSSettings.Path)
 				break;
+			case "httpupgrade":
+				AddQuery (dst, "host", src.HTTPUPGRADESettings.Host);
+				AddQuery (dst, "path", src.HTTPUPGRADESettings.Path);
+				break;
 			case "xhttp":
-				AddQuery (dst, "host", src.XHTTPSettings.Host)
-				AddQuery (dst, "mode", src.XHTTPSettings.Mode)
-				AddQuery (dst, "path", src.XHTTPSettings.Path)
+				var _cfg *conf.SplitHTTPConfig;
+				if nil != src.XHTTPSettings {
+					_cfg = src.XHTTPSettings;
+				} else if nil != src.SplitHTTPSettings {
+					_cfg = src.SplitHTTPSettings;
+				} else {
+					break; // No xhttp settings is provided.
+				}
+				AddQuery (dst, "host", _cfg.Host)
+				AddQuery (dst, "mode", _cfg.Mode)
+				AddQuery (dst, "path", _cfg.Path)
 				break;
 			}
 		} else {

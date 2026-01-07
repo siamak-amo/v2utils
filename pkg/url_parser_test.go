@@ -125,7 +125,20 @@ func Test_parse_vless_url_7 (t *testing.T) {
 
 	umap.Assert (t, Network,			"xhttp")
 	umap.Assert (t, XHTTP_Host,			"meme.global.ssl.fastly.net")
-	umap.Assert (t, XHTTP_Path,          "/@zzz")
+	umap.Assert (t, XHTTP_Path,         "/@zzz")
+}
+
+// HTTPUpgrade test
+func Test_parse_vless_url_8 (t *testing.T) {
+	const VLESS_TEST_5 = "vless://421915bb@1.1.11.111:8880?type=httpupgrade&security=none&host=Ir.CLIck&path=%2Ffilter%2fnakon%2Fpedar%2Fsag"
+	umap, e := ParseURL(VLESS_TEST_5);
+	if nil != e {
+		t.Fatalf ("parse_vless_url failed: %v\n", e)
+	}
+
+	umap.Assert (t, Network,			"httpupgrade")
+	umap.Assert (t, HTTPUP_Host,        "Ir.CLIck")
+	umap.Assert (t, HTTPUP_Path,        "/filter/nakon/pedar/sag")
 }
 
 // Simple vmess test
@@ -248,6 +261,10 @@ func Test_parse_trojan_url_3 (t *testing.T) {
 	umap.Assert (t, Security,			"tls")
 	umap.Assert (t, TLS_sni,			"people-jan.xxx-java.ir")
 }
+
+// Test_parse_trojan_url_4  --> trojan over KCP
+// Test_parse_trojan_url_5  --> trojan over Xhttp
+// Test_parse_trojan_url_6  --> trojan over upgradeHttp
 
 // Simple shadowsocks test
 func Test_parse_ss_url_1 (t *testing.T) {

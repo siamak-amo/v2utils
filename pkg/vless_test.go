@@ -217,3 +217,26 @@ func Test_Gen_vless_URL_7(t *testing.T) {
 	Assert (t, q.Get("path"), "/xpath");
 	Assert (t, q.Get("host"), "x.com");
 }
+
+// Vless over HTTPUpgrade
+func Test_Gen_vless_URL_8(t *testing.T) {
+	cfg := &conf.OutboundDetourConfig{ Protocol: "vless" }
+	if e := unmarshal_H (cfg, fmt.Sprintf(FMT_Vless,
+		`"network": "httpupgrade", "security": "none",
+             "httpupgradeSettings": {
+                 "host": "x.com", "path": "/http_upgrade"
+             }`,
+	)); nil != e {
+		panic (e);
+	}
+	u := Gen_vless_URL (cfg);
+	if nil == u {
+		t.Fatal("failed")
+	}
+
+	q := u.Query()
+	Assert (t, q.Get("type"), "httpupgrade");
+	Assert (t, q.Get("security"), "none");
+	Assert (t, q.Get("path"), "/http_upgrade");
+	Assert (t, q.Get("host"), "x.com");
+}

@@ -50,6 +50,9 @@ const (
 	XHTTP_Path
 	XHTTP_Mode
 	XHTTP_Headers // Comma-separated values, no double quote
+	HTTPUP_Host              // http upgrade
+	HTTPUP_Path
+	HTTPUP_Headers // Comma-separated values, no double quote
 	// Protocol parts
 	Vxess_ID  // vless & vmess  we call them vxess
 	Vless_ENC

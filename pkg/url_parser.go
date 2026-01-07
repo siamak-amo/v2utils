@@ -75,6 +75,12 @@ func parse_vless_url (u *url.URL) (URLmap) {
 		res[XHTTP_Host] = params.Pop ("host")
 		break;
 
+	case "httpupgrade":
+		// TODO: HTTPUP_Headers
+		res[HTTPUP_Host] = params.Pop ("host")
+		res[HTTPUP_Path] = params.Pop ("path")
+		break;
+
 	default:
 		break;
 	}
@@ -150,6 +156,12 @@ func parse_vmess_url (input string) (URLmap, error) {
 		res[XHTTP_Host] = dst.Pop ("host")
 		res[XHTTP_Path] = dst.Pop ("path")
 		res[XHTTP_Mode] = dst.Pop ("mode")
+		break;
+
+	case "httpupgrade":
+		// TODO: HTTPUP_Headers
+		res[HTTPUP_Host] = dst.Pop ("host")
+		res[HTTPUP_Path] = dst.Pop ("path")
 		break;
 
 	default:
@@ -231,6 +243,11 @@ func parse_trojan_url (u *url.URL) (URLmap) {
 		res[XHTTP_Path] = params.Pop ("path")
 		res[XHTTP_Mode] = params.Pop ("mode")
 		res[XHTTP_Host] = params.Pop ("host")
+		break;
+	case "httpupgrade":
+		// TODO: HTTPUP_Headers
+		res[HTTPUP_Host] = params.Pop ("host")
+		res[HTTPUP_Path] = params.Pop ("path")
 		break;
 	default:
 		break;
