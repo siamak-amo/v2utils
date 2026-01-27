@@ -31,7 +31,7 @@ func HasSuffixs(haystack string, needles []string) bool {
 // proxy URL or `-` to read from stdin.
 
 func (opt *Opt) Set_rd_url() {
-	if opt.url[0] == '-' {
+	if (len(opt.url) == 1 && opt.url[0] == '-') || len(opt.url) == 0 {
 		opt.Set_rd_stdin();
 	} else {
 		opt.GetInput = func() (string, bool) {

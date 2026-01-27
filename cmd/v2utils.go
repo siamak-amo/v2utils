@@ -164,8 +164,8 @@ func (opt *Opt) Set2_run() int {
 	} else if "" != opt.url {
 		opt.Cmd = CMD_RUN_URL;
 	} else {
-		log.Errorf("Run command needs a URL (--url) or config file (--config).\n");
-		return -1
+		log.Warnf("neither URL nor config file is provided, assuming to read URL.\n");
+		opt.Cmd = CMD_RUN_URL;
 	}
 	return 0;
 }
