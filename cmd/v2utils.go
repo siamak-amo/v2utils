@@ -297,6 +297,7 @@ func (opt Opt) Do(ln string) int {
 		return -1; // The run command, only uses the first provided URL
 
 	case CMD_TEST_URL:
+		opt.V2.UnsetTemplate()
 		result, duration := opt.V2.Test_URL(ln)
 		if ! opt.reverse {
 			if result {
@@ -329,6 +330,7 @@ func (opt Opt) Do(ln string) int {
 		res := false
 		var duration int64
 		opt.template_file = ln
+		opt.V2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
 			log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
 		} else {
@@ -362,6 +364,7 @@ func (opt Opt) Do(ln string) int {
 
 	case CMD_RUN_CFG:
 		opt.template_file = ln
+		opt.V2.UnsetTemplate()
 		if "-" != ln {
 			log.Infof("Loading config: %s\n", ln)
 		}
@@ -377,6 +380,7 @@ func (opt Opt) Do(ln string) int {
 
 	case CMD_CONVERT_CFG:
 		opt.template_file = ln
+		opt.V2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
 			log.Errorf("Loading config '%s' failed - %v\n", ln, e)
 			return 1;
