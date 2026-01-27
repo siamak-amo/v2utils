@@ -18,6 +18,7 @@ import (
 
 type V2utils struct {
 	CFG *conf.Config
+	set_template bool
 	Xray_instance *core.Instance // xray-core client instance
 };
 
@@ -41,6 +42,17 @@ func GetFormatByExtension(filename string) string {
 	}
 }
 
+func (v2 *V2utils) UnsetTemplate() {
+	if v2.set_template {
+		v2.CFG = nil;
+		v2.set_template = false;
+	}
+}
+
+func (v2 *V2utils) HasTemplate() bool {
+	return v2.set_template;
+}
+
 // Applies the template v2.template_path to v2.CFG
 func (v2 *V2utils) Apply_template(file_path string) error {
 	t := core.ConfigSource{
@@ -60,6 +72,7 @@ func (v2 *V2utils) Apply_template(file_path string) error {
 		}
 		v2.CFG = c;
 	}
+	v2.set_template = true
 	return nil
 }
 
@@ -68,11 +81,15 @@ func (v2 *V2utils) Apply_template_bystr(template string) error {
 	if v2.CFG, e = pkg.Gen_main(template); nil != e {
 		return e;
 	}
+	v2.set_template = true
 	return nil
 }
 
 func (v2 *V2utils) Apply_template_byio(rio io.Reader) error {
 	var err error
 	v2.CFG, err = pkg.Gen_main_io(rio);
+	if nil == err {
+		v2.set_template = true
+	}
 	return err;
 }

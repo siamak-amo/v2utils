@@ -253,14 +253,16 @@ func (opt *Opt) Init() int {
 func (opt Opt) Do(ln string) int {
 	switch (opt.Cmd) {
 	case CMD_CONVERT_URL:
-		if "" != opt.template_file {
-			if e := opt.V2.Apply_template(opt.template_file); nil != e {
-				log.Errorf("broken or invalid template - %v\n", e);
-				return -1;
+		if !opt.V2.HasTemplate() {
+			if "" != opt.template_file {
+				if e := opt.V2.Apply_template(opt.template_file); nil != e {
+					log.Errorf("broken or invalid template - %v\n", e);
+					return -1;
+				}
+			} else {
+				// No template is provided, using the default one
+				opt.Apply_Default_Template();
 			}
-		} else {
-			// No template is provided, using the default one
-			opt.Apply_Default_Template();
 		}
 		if e := opt.V2.Apply_URL(ln); nil != e {
 			log.Warnf("Could not apply URL '%s' - %v\n", ln, e);
@@ -274,16 +276,18 @@ func (opt Opt) Do(ln string) int {
 		break;
 
 	case CMD_RUN_URL:
-		if e := opt.Init_CFG(); nil != e {
-			log.Errorf("Invalid template - %v\n", e)
-			return -1;
+		if !opt.V2.HasTemplate() {
+			if e := opt.Init_CFG(); nil != e {
+				log.Errorf("Invalid template - %v\n", e)
+				return -1;
+			}
 		}
 		if e := opt.V2.Init_Outbound_byURL(ln); nil != e {
 			log.Errorf("Invalid or unsupported URL - %v\n", e)
 			return 1;
 		}
 		if "" == opt.template_file {
-			log.Errorf("No template provided, using the default template: %s\n",
+			log.Warnf("No template is provided, using the default template: %s\n",
 				opt.Get_Default_Template());
 		}
 		if e := opt.V2.Exec_Xray(); nil != e {
