@@ -1,5 +1,5 @@
 /* V2utils provides xray-core compatible utilities
-   Copyright 2025 Ahmad <edu.siamak@gmail.com>
+   Copyright 2025-2026 Ahmad <edu.siamak@gmail.com>
 
    V2utils is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import (
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
 
-const Version = "1.2";
+const Version = "1.3";
 
 const (
 	CMD_CONVERT_URL int = iota

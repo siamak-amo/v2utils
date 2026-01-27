@@ -2,30 +2,31 @@ V2utils (Xray utility)
 ======================
 
 This project provides a simple command-line tool, that extends
-the xray-core program at <https://github.com/xtls/xray-core>.
+the xray-core program <https://github.com/xtls/xray-core>.
+
 
 Quick introduction
 ------------------
 
 Many web interfaces (v2ray panels) are available and used for
 managing and configuring V2ray/Xray servers. These interfaces
-often generate URLs to configure the client-side programs.
+usually create URL to configure the client-side programs.
 
-Although these URLs (e.g. vless://id@host:ip) are commonly
+Although these URLs (e.g. vless://id@ip:port) are commonly
 used, they are not supported by traditional command-line
 Xray and V2ray programs; only mobile and GUI applications
 like v2rayNG on Android, and v2rayN support them.
 
 This project extends the xray-core command-line program
-to support proxy URLs, providing functionalities to directly
-use, test and convert them.
+by adding functionalities to use (run), test and convert
+json configs and proxy URLs directly.
 
 Build / Install
 ---------------
 
 * To build from source:
   Simply run `make` at the root of the project.
-  Also `make debug` builds with additional debug logging.
+  Use `make debug` to build with logs in debug mode.
 
 * To Install via go command:
   `go install -v github.com/siamak-amo/v2utils/cmd@latest`
@@ -34,9 +35,9 @@ Build / Install
 Usage examples
 ==============
 
-V2utils supports three major functionalities: Convert, Test and Run.
-Run v2utils like: `v2utils COMMAND` or create soft links for each
-functionality: v2convert, v2test, and v2run.
+V2utils supports three commands: Convert, Test and Run.
+Run v2utils with command `v2utils COMMAND` or create soft links
+for each command separately:  v2convert, v2test, and v2run.
 
 As a common convention, all commands:
  - Use stdin if a dash is passed as argument to --config, --url.
@@ -115,6 +116,6 @@ Source code
 ===========
 
  - cmd: Dedicated to the command-line interface.
- - pkg: Contains low-level functions for converting URLs <-> JSON.
+ - pkg: Contains low-level functions for converting URL <-> JSON.
  - utils: Interface to pkg, It also provides running and testing
           Xray-core functions. It should be reusable as a library.

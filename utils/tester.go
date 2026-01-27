@@ -81,8 +81,8 @@ func (v2 *V2utils) Test_CFG(path string) (result bool, duration int64) {
 	}
 
 	// We do not use inbound configurations for testing
-	// having them may cause true-negative for us
-	// as the inbound proxy port(s) might be inuse.
+	// having them in config, may cause true-negative for us
+	// as the inbound proxy port(s), may be in use.
 	v2.CFG.InboundConfigs = nil
 
 	// Logs from the instance, may interfere with our logs
