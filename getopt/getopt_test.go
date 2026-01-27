@@ -28,6 +28,24 @@ func Test_getopt_long(t *testing.T) {
 	tcase.Test(t);
 }
 
+// long option = value test
+func Test_getopt_long_equal(t *testing.T) {
+	tcase := Test_case{
+		cfg_optstr: "x:",
+		cfg_longopt: []Option{
+			{"method", true, 'x'},
+		},
+		argv: []string{
+			"a.out", "--method=POST",  "--method=", "GET",
+		},
+		exps: []Expectation{
+			{'x', "POST"},
+			{'x', ""}, // the second --method= is empty
+		},
+	}
+	tcase.Test(t);
+}
+
 // GNU style options test (e.g. -x666, -XPOST)
 func Test_getopt_long_gnu_style(t *testing.T) {
 	tcase := Test_case{

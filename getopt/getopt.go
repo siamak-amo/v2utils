@@ -57,6 +57,23 @@ func is_opt(s string) bool {
 	return false;
 }
 
+func parse_lopt(arg string) (opt string, value string, has_value bool) {
+	eq := strings.LastIndexByte (arg, '=');
+	if eq != -1 {
+		opt = arg[2:eq];
+		has_value = true;
+		if len(arg) > eq+1 {
+			value = arg[eq+1:]
+		} else {
+			value = "" // empty
+		}
+	} else {
+		opt = arg[2:];
+		has_value = false;
+	}
+	return;
+}
+
 func Getopt_long(argv []string, optstring string, longopts []Option) int {
 beginning_of_parse:
 	if Optind >= len(argv) {
@@ -110,10 +127,16 @@ beginning_of_parse:
 			return -1 // End of Options (--)
 		}
 		for _,v := range longopts {
-			if arg[2:] == v.Name { // found
+			opt, value, has_value := parse_lopt (arg);
+			if opt == v.Name { // found
 				Optopt = v.Value
 				Optind += 1
-				if v.HasArg && Optind < len(argv) && !is_opt(argv[Optind]) {
+				if has_value {
+					// detected: '--option=value'
+					Optarg = value
+					return (int)(v.Value);
+				} else if v.HasArg && Optind < len(argv) && !is_opt (argv[Optind]) {
+					// detected: '--option' 'value'
 					Optarg = argv[Optind]
 					Optind += 1
 				} else if v.HasArg {
