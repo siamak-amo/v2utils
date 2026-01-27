@@ -248,150 +248,145 @@ func (opt *Opt) Init() int {
 	return 0;
 }
 
-func (opt Opt) Do() {
-	EOF := false
-	var ln string
-
-	for true != EOF {
-		ln, EOF = opt.GetInput();
-		if len(ln) == 0 || ln[0] <= ' ' || ln[0] == '#' {
-			continue;
+// @return:  0 on success, positive of failure
+//    negative on Fatal failures and Exit request
+func (opt Opt) Do(ln string) int {
+	switch (opt.Cmd) {
+	case CMD_CONVERT_URL:
+		if "" != opt.template_file {
+			if e := opt.V2.Apply_template(opt.template_file); nil != e {
+				log.Errorf("broken or invalid template - %v\n", e);
+				return -1;
+			}
+		} else {
+			// No template is provided, using the default one
+			opt.Apply_Default_Template();
 		}
+		if e := opt.V2.Apply_URL(ln); nil != e {
+			log.Warnf("Could not apply URL '%s' - %v\n", ln, e);
+			return 1;
+		}
+		if e := opt.MK_josn_output(ln); nil != e {
+			log.Errorf("IO error: %v\n", e);
+			log.Errorf("Fatal error, exiting.\n");
+			return -1;
+		}
+		break;
 
-		switch (opt.Cmd) {
-		case CMD_CONVERT_URL:
-			if "" != opt.template_file {
-				if e := opt.V2.Apply_template(opt.template_file); nil != e {
-					log.Errorf("broken or invalid template - %v\n", e);
+	case CMD_RUN_URL:
+		if e := opt.Init_CFG(); nil != e {
+			log.Errorf("Invalid template - %v\n", e)
+			return -1;
+		}
+		if e := opt.V2.Init_Outbound_byURL(ln); nil != e {
+			log.Errorf("Invalid or unsupported URL - %v\n", e)
+			return 1;
+		}
+		if "" == opt.template_file {
+			log.Errorf("No template provided, using the default template: %s\n",
+				opt.Get_Default_Template());
+		}
+		if e := opt.V2.Exec_Xray(); nil != e {
+			log.Errorf("Exec xray-core failed - %v\n", e)
+			return 1;
+		}
+		return -1; // The run command, only uses the first provided URL
+
+	case CMD_TEST_URL:
+		result, duration := opt.V2.Test_URL(ln)
+		if ! opt.reverse {
+			if result {
+				fmt.Println(ln)
+				if opt.verbose {
+					log.Infof("`%s` OK (%d ms).\n", ln, duration)
 				}
 			} else {
-				// No template is provided, using the default one
-				opt.Apply_Default_Template();
+				log.Warnf("Broken URL '%s'\n", ln);
 			}
-			if e := opt.V2.Apply_URL(ln); nil != e {
-				log.Warnf("Could not apply URL '%s' - %v\n", ln, e);
-				continue;
+		} else { // Only print broken urls
+			if ! result {
+				fmt.Println(ln);
+			} else if opt.verbose {
+				log.Infof("`%s` OK (%d ms).\n", ln, duration)
 			}
+		}
+		// Generating json files if applicable
+		if result && "" != opt.output_dir {
 			if e := opt.MK_josn_output(ln); nil != e {
 				log.Errorf("IO error: %v\n", e);
 				log.Errorf("Fatal error, exiting.\n");
-				return;
+				return -1;
 			}
-			break;
-
-		case CMD_RUN_URL:
-			if e := opt.Init_CFG(); nil != e {
-				log.Errorf("Invalid template - %v\n", e)
-				return;
-			}
-			if e := opt.V2.Init_Outbound_byURL(ln); nil != e {
-				log.Errorf("Invalid or unsupported URL - %v\n", e)
-				break;
-			}
-			if "" == opt.template_file {
-				log.Errorf("No template provided, using the default template: %s\n",
-					opt.Get_Default_Template());
-			}
-			if e := opt.V2.Exec_Xray(); nil != e {
-				log.Errorf("Exec xray-core failed - %v\n", e)
-				break;
-			}
-			return; // The run command, only uses the first provided URL
-
-		case CMD_TEST_URL:
-			result, duration := opt.V2.Test_URL(ln)
-			if ! opt.reverse {
-				if result {
-					fmt.Println(ln)
-					if opt.verbose {
-						log.Infof("`%s` OK (%d ms).\n", ln, duration)
-					}
-				} else {
-					log.Infof("Broken URL '%s'\n", ln);
-				}
-			} else { // Only print broken urls
-				if ! result {
-					fmt.Println(ln);
-				} else if opt.verbose {
-					log.Infof("`%s` OK (%d ms).\n", ln, duration)
-				}
-			}
-			// Generating json files if applicable
-			if result && "" != opt.output_dir {
-				if e := opt.MK_josn_output(ln); nil != e {
-					log.Errorf("IO error: %v\n", e);
-					log.Errorf("Fatal error, exiting.\n");
-					return;
-				}
-			}
-			break;
-
-			// For xxx_CFG commands, @ln is path to a file or `-` for stdin
-		case CMD_TEST_CFG:
-			res := false
-			var duration int64
-			opt.template_file = ln
-			if e := opt.Init_CFG(); nil != e {
-				log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
-			} else {
-				res, duration = opt.V2.Test_CFG(ln)
-			}
-			if ! opt.reverse {
-				if res {
-					fmt.Println(ln);
-					if opt.verbose {
-						log.Infof ("config file '%s':  OK (%d ms).\n", ln, duration);
-					}
-				} else {
-					log.Warnf("config file '%s' is broken\n", ln)
-				}
-			} else { // Only print broken configs
-				if !res {
-					fmt.Println(ln);
-				} else {
-					log.Infof("config file '%s':  OK (%d ms).\n", ln, duration)
-				}
-			}
-
-			if !res && opt.rm { // We are not in reverse mode here
-				if e := os.Remove(ln); nil != e {
-					log.Errorf("Could not remove %s - %v\n", ln, e)
-				} else {
-					log.Logf("Broken file %s was removed.\n", ln)
-				}
-			}
-			break;
-
-		case CMD_RUN_CFG:
-			opt.template_file = ln
-			if "-" != ln {
-				log.Infof("Loading config: %s\n", ln)
-			}
-			if e := opt.Init_CFG(); nil != e {
-				log.Errorf("Loading config failed - %v\n", e)
-				continue;
-			}
-			if e := opt.V2.Exec_Xray(); nil != e {
-				log.Errorf("Exec xray-core failed - %v\n", e)
-				return;
-			}
-			return; // The Run Cfg command, only uses the first input
-
-		case CMD_CONVERT_CFG:
-			opt.template_file = ln
-			if e := opt.Init_CFG(); nil != e {
-				log.Errorf("Loading config failed - %v\n", e)
-				continue;
-			}
-			res, e := opt.V2.Convert_conf2url();
-			if nil != e {
-				log.Warnf ("Converting '%s' to URL failed - %v\n", ln, e);
-			} else {
-				fmt.Println(res);
-			}
-			break;
 		}
+		break;
+
+		// For xxx_CFG commands, @ln is path to a file or `-` for stdin
+	case CMD_TEST_CFG:
+		res := false
+		var duration int64
+		opt.template_file = ln
+		if e := opt.Init_CFG(); nil != e {
+			log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
+		} else {
+			res, duration = opt.V2.Test_CFG(ln)
+		}
+		if ! opt.reverse {
+			if res {
+				fmt.Println(ln);
+				if opt.verbose {
+					log.Infof ("config file '%s':  OK (%d ms).\n", ln, duration);
+				}
+			} else {
+				log.Warnf("config file '%s' is broken\n", ln)
+			}
+		} else { // Only print broken configs
+			if !res {
+				fmt.Println(ln);
+			} else {
+				log.Infof("config file '%s':  OK (%d ms).\n", ln, duration)
+			}
+		}
+
+		if !res && opt.rm { // We are not in reverse mode here
+			if e := os.Remove(ln); nil != e {
+				log.Errorf("Could not remove %s - %v\n", ln, e)
+			} else {
+				log.Logf("Broken file %s was removed.\n", ln)
+			}
+		}
+		break;
+
+	case CMD_RUN_CFG:
+		opt.template_file = ln
+		if "-" != ln {
+			log.Infof("Loading config: %s\n", ln)
+		}
+		if e := opt.Init_CFG(); nil != e {
+			log.Errorf("Loading config '%s' failed - %v\n", ln, e)
+			return -1;
+		}
+		if e := opt.V2.Exec_Xray(); nil != e {
+			log.Errorf("Exec xray-core failed - %v\n", e)
+			return -1;
+		}
+		return -1; // RUN_CFG only uses the first input
+
+	case CMD_CONVERT_CFG:
+		opt.template_file = ln
+		if e := opt.Init_CFG(); nil != e {
+			log.Errorf("Loading config '%s' failed - %v\n", ln, e)
+			return 1;
+		}
+		res, e := opt.V2.Convert_conf2url();
+		if nil != e {
+			log.Warnf ("Converting '%s' to URL failed - %v\n", ln, e);
+		} else {
+			fmt.Println(res);
+		}
+		break;
 	}
+
+	return 0;
 }
 
 func main() {
@@ -404,5 +399,15 @@ func main() {
 		os.Exit (-ret);
 	}
 
-	opt.Do(); // The main loop
+	// The main loop
+	var ln string
+	for EOF := false; true != EOF; {
+		ln, EOF = opt.GetInput();
+		if len(ln) == 0 || ln[0] <= ' ' || ln[0] == '#' {
+			continue;
+		}
+		if opt.Do(ln) < 0 {
+			break;
+		}
+	}
 }
