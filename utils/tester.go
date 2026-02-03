@@ -14,45 +14,71 @@ import (
 )
 
 const (
-    HTTP_Test_Endpoint = "http://google.com"
+	// Default test endpoint
+	Test_Endpoint_0 = "http://www.google.com"
+	// IP address API test endpoints
+    Test_Endpoint_1 = "http://api4.ipify.org"
+    Test_Endpoint_2 = "http://v4.api.ipinfo.io/ip"
+    Test_Endpoint_3 = "http://check-host.net/ip"
+    Test_Endpoint_4 = "http://ipv4.icanhazip.com"
 )
 
 var (
 	TestTimeout time.Duration = 10 * time.Second
 )
+	// Maximum number of endpoints to test
+	TestCount int = 3
 
+	TestEndpoints = []string{
+		Test_Endpoint_0,
+		Test_Endpoint_1, Test_Endpoint_2, Test_Endpoint_3, Test_Endpoint_4,
+	}
+)
 
-func (v2 V2utils) doTest() (res bool, duration int64) {
+// @return:  test result (bool),  time duration (int64) in milliseconds
+func (v2 V2utils) doTest() (bool, int64) {
 	if e := v2.Run_Xray(); nil != e {
 		log.Warnf ("Could not run the xray server - %v\n", e)
-		return false, 0
+		return false, 0;
 	}
-	err, duration := v2.test_http();
-	res = (err == nil)
+
+	for n := 0;; {
+		for _, endpoint := range TestEndpoints {
+			if n += 1; n > TestCount {
+				goto give_up;
+			}
+			if err, time := v2.test_http(endpoint); nil == err {
+				return true, time;
+			}
+		}
+	}
+
+give_up:
 	v2.Kill_Xray()
-	return
+	return false, 0;
 }
 
 // This will utilize the xray-core Dial function (DialContext compatible)
 func (v2 V2utils) CustomDial(ctx context.Context, network, addr string) (xnet.Conn, error) {
-	__dst, e := xnet.ParseDestination(network + ":" + addr);
+	dst, e := xnet.ParseDestination(network + ":" + addr);
 	if nil != e {
 		return nil, e
 	}
-	return core.Dial(ctx, v2.Xray_instance, __dst);
+	return core.Dial(ctx, v2.Xray_instance, dst);
 }
 
-func (v2 V2utils) test_http() (res error, duration int64) {
+// @addr:  'http://domain.tld'
+func (v2 V2utils) test_http(addr string) (res error, duration int64) {
 	ctx, cancel := context.WithTimeout (context.Background(), TestTimeout)
 	defer cancel()
-	req, err := http.NewRequest(http.MethodGet, HTTP_Test_Endpoint, nil)
+	req, err := http.NewRequest (http.MethodGet, addr, nil)
 	if nil != err {
-		panic (err) // it's ours, failed to create the test request
+		return err, 0
 	}
 	req = req.WithContext(ctx)
 
-	httpTransport := &http.Transport{DialContext: v2.CustomDial}
-	client := &http.Client{Transport: httpTransport}
+	httpTransport := http.Transport{DialContext: v2.CustomDial}
+	client := http.Client{Transport: &httpTransport}
 	if _, err := client.Do(req); err != nil {
 		log.Infof("Broken VPN :( %v\n", err)
 		return err, 0
