@@ -20,7 +20,6 @@ import (
 	"os"
 	"fmt"
 	"time"
-	"bufio"
 	"strings"
 	"strconv"
 
@@ -52,7 +51,7 @@ type Opt struct {
 	reverse bool            // print broken configs, not functionals
 	verbose bool
 
-	scanner *bufio.Scanner
+	// To retrieve the next input based on given options
 	GetInput func() (string, bool)
 
 	V2 utils.V2utils

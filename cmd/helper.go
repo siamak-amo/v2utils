@@ -12,6 +12,10 @@ import (
 	log "github.com/siamak-amo/v2utils/log"
 )
 
+var (
+	global_scanner *bufio.Scanner
+)
+
 func Isatty(f *os.File) bool {
 	return term.IsTerminal(int(f.Fd()))
 }
@@ -45,10 +49,10 @@ func (opt *Opt) Set_rd_file() error {
 	if nil != err {
 		return err
 	}
-	opt.scanner = bufio.NewScanner(f)
+	global_scanner = bufio.NewScanner(f)
 	opt.GetInput = func() (string, bool) {
-		if opt.scanner.Scan() {
-			return opt.scanner.Text(), false
+		if global_scanner.Scan() {
+			return global_scanner.Text(), false
 		} else {
 			f.Close();
 			return "", true
@@ -61,10 +65,10 @@ func (opt *Opt) Set_rd_stdin() {
 	if Isatty(os.Stdin) {
 		println ("Reading URLs from STDIN until EOF:")
 	}
-	opt.scanner = bufio.NewScanner(os.Stdin)
+	global_scanner = bufio.NewScanner(os.Stdin)
 	opt.GetInput = func() (string, bool) {
-		if opt.scanner.Scan() {
-			return opt.scanner.Text(), false
+		if global_scanner.Scan() {
+			return global_scanner.Text(), false
 		} else {
 			return "", true
 		}
