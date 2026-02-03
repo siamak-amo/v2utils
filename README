@@ -45,15 +45,16 @@ As a common convention, all commands:
  - Use stdout if no --output option is provided.
  - Read all json files from a directory, if the --config option
    points to a directory rather than an explicit file path.
+ - Use the default template if no --template is provided
 
 
 Convert command
 ---------------
 
-The Convert command, converts proxy URLs to their equivalent json
-format using a base template specified by the --template option.
-It can also convert 'outbounds' section of the json files back
-into V2rayNG compatible URLs.
+The Convert command, maps proxy URLs to the 'outbounds' section
+of the json template given by the --template option.
+It can also convert 'outbounds' section of the json files,
+back into their compatible URL.
 
 * Converting proxy URLs to json
   $ v2utils convert --output /path/to/destination_dir \
@@ -72,11 +73,12 @@ into V2rayNG compatible URLs.
 * Converting 'outbounds' of json files to URL:
   $ v2utils convert --config /path/to/conf_dir
 
+
 Test command
 ------------
 
 The Test command determines broken and functional configurations
-by verifying the accessibility of 'http://google.com' through
+by verifying the accessibility of some well-known endpoints through
 the VPN client with the current configuration.
 
 * Test URLs and collect only functional ones:
@@ -98,6 +100,7 @@ the VPN client with the current configuration.
   while using the reverse option, it only prints broken
   files and URLs on stdout.
 
+
 Run command
 -----------
 
@@ -108,7 +111,7 @@ URL and template  or  with config file.
   To run with a URL, use the --url option for 'outbounds', along
   with a template.json file for 'inbounds', 'routing', 'logs', etc.
 
-  $ v2utils run --url vless://id@1.2.3.4:1234 \
+  $ v2utils run --url 'vless://id@1.2.3.4:1234' \
            --template template.json
 
 
