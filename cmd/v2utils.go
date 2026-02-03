@@ -22,6 +22,7 @@ import (
 	"time"
 	"bufio"
 	"strings"
+	"strconv"
 
 	log "github.com/siamak-amo/v2utils/log"
 	utils "github.com/siamak-amo/v2utils/utils"
@@ -58,7 +59,7 @@ type Opt struct {
 };
 
 func (opt *Opt) GetArgs() {
-	const optstr = "u:f:T:t:o:c:Rrvh"
+	const optstr = "u:f:T:t:o:c:n:Rrvh"
 	lopts := []getopt.Option{
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
@@ -70,6 +71,8 @@ func (opt *Opt) GetArgs() {
 		{"rm",            false, 'R'},
 		{"verbose",       false, 'v'},
 		{"help",          false, 'h'},
+		{"test-count",    true,  'n'},
+		{"tc",            true,  'n'},
 	}
 	argv := os.Args
 	for idx := 0; -1 != idx; {
@@ -98,6 +101,11 @@ func (opt *Opt) GetArgs() {
 			opt.reverse = true; break;
 		case 'v':
 			opt.verbose = true; break;
+		case 'n':
+			if count, err := strconv.Atoi(getopt.Optarg); nil == err && count > 0 {
+				utils.TestCount = count
+			}
+			break;
 		case 'h':
 			fmt.Fprintf(os.Stderr, `v2utils v%s - xray-core compatible utility
 Usage:  v2utils COMMAND [OPTIONS]
@@ -120,6 +128,7 @@ Test command options:
     -r, --reverse         only print broken configs on stdout
     -R, --rm              to remove broken config files
     -T, --timeout         timeout 20s, 20000ms (default 10s)
+    -n, --test-count      number of distinct tests before give up
 
 Examples:
     # run xray by URL:
