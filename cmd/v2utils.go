@@ -127,12 +127,12 @@ OPTIONS:
 Test command options:
     -r, --reverse         only print broken configs on stdout
     -R, --rm              to remove broken config files
-    -T, --timeout         timeout 20s, 20000ms (default 10s)
+    -T, --timeout         timeout 2s, 20000ms (default 10s)
     -n, --test-count      number of distinct tests before give up
 
 Examples:
     # run xray by URL:
-    $ v2utils run --url vless://id@1.2.3.4:1234
+    $ v2utils run --url 'vless://id@1.2.3.4:1234'
 
     # test json files and remove broken ones
     $ v2utils test --config /path/to/configs/ --rm

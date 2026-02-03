@@ -24,8 +24,8 @@ const (
 )
 
 var (
+	// Timeout to fail a test
 	TestTimeout time.Duration = 10 * time.Second
-)
 	// Maximum number of endpoints to test
 	TestCount int = 3
 
@@ -106,12 +106,12 @@ func (v2 *V2utils) Test_CFG(path string) (result bool, duration int64) {
 		return false, 0
 	}
 
-	// We do not use inbound configurations for testing
-	// having them in config, may cause true-negative for us
-	// as the inbound proxy port(s), may be in use.
+	// We should eliminate 'inbounds' section for testing,
+	// as the inbound proxy port(s), may be in use, so leading to
+	// false-positive results.
 	v2.CFG.InboundConfigs = nil
 
-	// Logs from the instance, may interfere with our logs
+	// Logs from the instance, interferes with our logs
 	if nil != v2.CFG.LogConfig {
 		v2.CFG.LogConfig.LogLevel = "none"
 	} else {
