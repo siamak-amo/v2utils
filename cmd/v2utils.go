@@ -28,7 +28,7 @@ import (
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
 
-const Version = "1.3";
+const Version = "1.4";
 
 const (
 	CMD_CONVERT_URL int = iota
@@ -42,23 +42,23 @@ const (
 type Opt struct {
 	// User options
 	Cmd int                 // CMD_xxx
-	url string
-	configs string			// file or dir for testing
+	urls []string
+	configs []string		// file or dir for testing
 	output_dir string		// output dir
-	template_file string	// template file path
 	in_file string			// input URLs file path
 	rm bool					// remove files if broken or invalid
 	reverse bool            // print broken configs, not functionals
 	verbose bool
 
-	// To retrieve the next input based on given options
-	GetInput func() (string, bool)
+	// Internal
+	cfg string // config or template file path
+	url string
 
 	V2 utils.V2utils
 };
 
 func (opt *Opt) GetArgs() {
-	const optstr = "u:f:T:t:o:c:n:Rrvh"
+	const optstr = "i:u:f:T:t:o:c:n:Rrvh"
 	lopts := []getopt.Option{
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
@@ -79,11 +79,11 @@ func (opt *Opt) GetArgs() {
 
 		switch (idx) {
 		case 'u':
-			opt.url = getopt.Optarg; break;
+			opt.urls = append (opt.urls, getopt.Optarg); break;
 		case 'c':
-			opt.configs = getopt.Optarg; break;
+			opt.configs = append (opt.configs, getopt.Optarg); break;
 		case 't':
-			opt.template_file = getopt.Optarg; break;
+			opt.cfg = getopt.Optarg; break;
 		case 'T':
 			var e error
 			if utils.TestTimeout, e = time.ParseDuration(getopt.Optarg); nil != e {
@@ -148,7 +148,7 @@ Examples:
 }
 
 func (opt *Opt) Set2_convert() int {
-	if "" != opt.configs {
+	if 0 < len(opt.configs) {
 		opt.Cmd = CMD_CONVERT_CFG;
 	} else {
 		// Default: converting URLs (stdin / --url)
@@ -157,7 +157,7 @@ func (opt *Opt) Set2_convert() int {
 	return 0;
 }
 func (opt *Opt) Set2_test() int {
-	if "" != opt.configs {
+	if 0 < len(opt.configs) {
 		// For Testing config (.json) files
 		opt.Cmd = CMD_TEST_CFG;
 	} else {
@@ -167,9 +167,9 @@ func (opt *Opt) Set2_test() int {
 	return 0;
 }
 func (opt *Opt) Set2_run() int {
-	if "" != opt.configs {
+	if 0 < len(opt.configs) {
 		opt.Cmd = CMD_RUN_CFG;
-	} else if "" != opt.url {
+	} else if 0 < len(opt.urls) {
 		opt.Cmd = CMD_RUN_URL;
 	} else {
 		log.Warnf("neither URL nor config file is provided, assuming to read URL.\n");
@@ -233,7 +233,7 @@ func (opt *Opt) Init() int {
 				return -1
 			}
 		}
-		if "" != opt.url {
+		if 0 < len(opt.urls) {
 			opt.Set_rd_url();
 		} else if "" != opt.in_file {
 			if e := opt.Set_rd_file(); nil != e {
@@ -246,7 +246,7 @@ func (opt *Opt) Init() int {
 		break;
 
 	case CMD_CONVERT_CFG, CMD_TEST_CFG, CMD_RUN_CFG:
-		if "-" == opt.configs {
+		if 0 == len(opt.configs) {
 			opt.Set_rd_cfg_stdin();
 		} else {
 			opt.Set_rd_cfg();
@@ -258,12 +258,12 @@ func (opt *Opt) Init() int {
 
 // @return:  0 on success, positive of failure
 //    negative on Fatal failures and Exit request
-func (opt Opt) Do(ln string) int {
+func (opt Opt) Do() int {
 	switch (opt.Cmd) {
 	case CMD_CONVERT_URL:
 		if !opt.V2.HasTemplate() {
-			if "" != opt.template_file {
-				if e := opt.V2.Apply_template(opt.template_file); nil != e {
+			if "" != opt.cfg {
+				if e := opt.Apply_template(); nil != e {
 					log.Errorf("broken or invalid template - %v\n", e);
 					return -1;
 				}
@@ -272,11 +272,11 @@ func (opt Opt) Do(ln string) int {
 				opt.Apply_Default_Template();
 			}
 		}
-		if e := opt.V2.Apply_URL(ln); nil != e {
-			log.Warnf("Could not apply URL '%s' - %v\n", ln, e);
+		if e := opt.Apply_URL(); nil != e {
+			log.Warnf("Could not apply URL '%s' - %v\n", opt.url, e);
 			return 1;
 		}
-		if e := opt.MK_josn_output(ln); nil != e {
+		if e := opt.MK_josn_output(opt.url); nil != e {
 			log.Errorf("IO error: %v\n", e);
 			log.Errorf("Fatal error, exiting.\n");
 			return -1;
@@ -290,11 +290,11 @@ func (opt Opt) Do(ln string) int {
 				return -1;
 			}
 		}
-		if e := opt.V2.Init_Outbound_byURL(ln); nil != e {
+		if e := opt.Init_Outbound_byURL(); nil != e {
 			log.Errorf("Invalid or unsupported URL - %v\n", e)
 			return 1;
 		}
-		if "" == opt.template_file {
+		if "" == opt.cfg {
 			log.Warnf("No template is provided, using the default template: %s\n",
 				opt.Get_Default_Template());
 		}
@@ -306,26 +306,26 @@ func (opt Opt) Do(ln string) int {
 
 	case CMD_TEST_URL:
 		opt.V2.UnsetTemplate()
-		result, duration := opt.V2.Test_URL(ln)
+		result, duration := opt.Test_URL()
 		if ! opt.reverse {
 			if result {
-				fmt.Println(ln)
+				fmt.Println(opt.url)
 				if opt.verbose {
-					log.Infof("`%s` OK (%d ms).\n", ln, duration)
+					log.Infof("`%s` OK (%d ms).\n", opt.url, duration)
 				}
 			} else {
-				log.Warnf("Broken URL '%s'\n", ln);
+				log.Warnf("Broken URL '%s'\n", opt.url);
 			}
 		} else { // Only print broken urls
 			if ! result {
-				fmt.Println(ln);
+				fmt.Println(opt.url);
 			} else if opt.verbose {
-				log.Infof("`%s` OK (%d ms).\n", ln, duration)
+				log.Infof("`%s` OK (%d ms).\n", opt.url, duration)
 			}
 		}
 		// Generating json files if applicable
 		if result && "" != opt.output_dir {
-			if e := opt.MK_josn_output(ln); nil != e {
+			if e := opt.MK_josn_output(opt.url); nil != e {
 				log.Errorf("IO error: %v\n", e);
 				log.Errorf("Fatal error, exiting.\n");
 				return -1;
@@ -337,47 +337,45 @@ func (opt Opt) Do(ln string) int {
 	case CMD_TEST_CFG:
 		res := false
 		var duration int64
-		opt.template_file = ln
 		opt.V2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
-			log.Errorf("Loading config file '%s' failed - %v\n", ln, e)
+			log.Errorf("Loading config file '%s' failed - %v\n", opt.cfg, e)
 		} else {
-			res, duration = opt.V2.Test_CFG(ln)
+			res, duration = opt.Test_CFG()
 		}
 		if ! opt.reverse {
 			if res {
-				fmt.Println(ln);
+				fmt.Println(opt.cfg);
 				if opt.verbose {
-					log.Infof ("config file '%s':  OK (%d ms).\n", ln, duration);
+					log.Infof ("config file '%s':  OK (%d ms).\n", opt.cfg, duration);
 				}
 			} else {
-				log.Warnf("config file '%s' is broken\n", ln)
+				log.Warnf("config file '%s' is broken\n", opt.cfg)
 			}
 		} else { // Only print broken configs
 			if !res {
-				fmt.Println(ln);
+				fmt.Println(opt.cfg);
 			} else {
-				log.Infof("config file '%s':  OK (%d ms).\n", ln, duration)
+				log.Infof("config file '%s':  OK (%d ms).\n", opt.cfg, duration)
 			}
 		}
 
 		if !res && opt.rm { // We are not in reverse mode here
-			if e := os.Remove(ln); nil != e {
-				log.Errorf("Could not remove %s - %v\n", ln, e)
+			if e := os.Remove(opt.cfg); nil != e {
+				log.Errorf("Could not remove %s - %v\n", opt.cfg, e)
 			} else {
-				log.Logf("Broken file %s was removed.\n", ln)
+				log.Logf("Broken file %s was removed.\n", opt.cfg)
 			}
 		}
 		break;
 
 	case CMD_RUN_CFG:
-		opt.template_file = ln
 		opt.V2.UnsetTemplate()
-		if "-" != ln {
-			log.Infof("Loading config: %s\n", ln)
+		if "-" != opt.cfg {
+			log.Infof("Loading config: %s\n", opt.cfg)
 		}
 		if e := opt.Init_CFG(); nil != e {
-			log.Errorf("Loading config '%s' failed - %v\n", ln, e)
+			log.Errorf("Loading config '%s' failed - %v\n", opt.cfg, e)
 			return -1;
 		}
 		if e := opt.V2.Exec_Xray(); nil != e {
@@ -387,15 +385,14 @@ func (opt Opt) Do(ln string) int {
 		return -1; // RUN_CFG only uses the first input
 
 	case CMD_CONVERT_CFG:
-		opt.template_file = ln
 		opt.V2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
-			log.Errorf("Loading config '%s' failed - %v\n", ln, e)
+			log.Errorf("Loading config '%s' failed - %v\n", opt.cfg, e)
 			return 1;
 		}
 		res, e := opt.V2.Convert_conf2url();
 		if nil != e {
-			log.Warnf ("Converting '%s' to URL failed - %v\n", ln, e);
+			log.Warnf ("Converting '%s' to URL failed - %v\n", opt.cfg, e);
 		} else {
 			fmt.Println(res);
 		}
@@ -416,13 +413,11 @@ func main() {
 	}
 
 	// The main loop
-	var ln string
-	for EOF := false; true != EOF; {
-		ln, EOF = opt.GetInput();
-		if len(ln) == 0 || ln[0] <= ' ' || ln[0] == '#' {
-			continue;
+	for ;; {
+		if EOF := opt.GetInput(); true == EOF {
+			break;
 		}
-		if opt.Do(ln) < 0 {
+		if opt.Do() < 0 {
 			break;
 		}
 	}

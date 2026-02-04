@@ -32,19 +32,36 @@ func (opt Opt) gen_output_filepath(url []byte) string {
 // Applies opt.template_path  or  the default template
 //         opt.template_path == "-" means to read from stdin
 func (opt *Opt) Init_CFG() error {
-	if "-" == opt.template_file {
+	if "-" == opt.cfg {
 		if Isatty(os.Stdin) {
 			println ("Reading json config from STDIN until EOF:")
 		}
 		return opt.V2.Apply_template_byio (os.Stdin);
 	} else {
-		if "" != opt.template_file {
-			return opt.V2.Apply_template (opt.template_file)
+		if "" != opt.cfg {
+			return opt.V2.Apply_template (opt.cfg)
 		} else {
 			opt.Apply_Default_Template();
 		}
 	}
 	return nil
+}
+
+func (opt *Opt) Test_CFG() (bool, int64) {
+	return opt.V2.Test_CFG(opt.cfg);
+}
+func (opt *Opt) Test_URL() (bool, int64) {
+	return opt.V2.Test_URL(opt.url);
+}
+
+func (opt *Opt) Apply_URL() error {
+	return opt.V2.Apply_URL(opt.url);
+}
+func (opt *Opt) Init_Outbound_byURL() error {
+	return opt.V2.Init_Outbound_byURL(opt.url);
+}
+func (opt *Opt) Apply_template() error {
+	return opt.V2.Apply_template(opt.cfg);
 }
 
 func (opt *Opt) Apply_Default_Template() {
