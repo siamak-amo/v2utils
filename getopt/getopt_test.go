@@ -148,3 +148,28 @@ func Test_getopt_dash(t *testing.T) {
 	}
 	tcase.Test(t);
 }
+
+// End of options test
+func Test_eof_options(t *testing.T) {
+	Getopt_reset();
+	const optstr = "x:h"
+	lopts := []Option{
+		{"method",        true,  'x'},
+		{"help",          true,  'h'},
+	};
+
+	argv := []string{"a.out", "-h",  "--",  "-x", "val"};
+	var idx int;
+
+	idx = Getopt_long (argv, optstr, lopts);
+	if idx != 'h' {
+		t.Fatalf("test failed")
+	}
+	idx = Getopt_long (argv, optstr, lopts);
+	if idx != -1 {
+		t.Fatalf("not correctly ended the getopt")
+	}
+	if Optind != 2 { // index of '--'
+		t.Fatalf("Optind is not set properly")
+	}
+}
