@@ -29,7 +29,7 @@ Build / Install
   Use `make debug` to build with logs in debug mode.
 
 * To Install via go command:
-  `go install -v github.com/siamak-amo/v2utils/cmd@latest`
+  `go install -v github.com/siamak-amo/v2utils/cmd/v2utils@latest`
 
 
 Usage examples

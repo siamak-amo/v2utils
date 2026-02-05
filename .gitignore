@@ -4,7 +4,7 @@
 *.so
 *.dylib
 
-v2utils
+/v2utils
 *.test
 .env
 *.out
