@@ -80,9 +80,6 @@ beginning_of_parse:
 		return -1
 	}
 	arg := argv[Optind]
-	if len(arg) <= 1 {
-		return -1;
-	}
 	Optarg = ""
 
 	if arg[0] == '-' && arg[1] != '-' {
@@ -172,9 +169,6 @@ beginning_of_parse:
 		return -1
 	}
 	arg := argv[Optind]
-	if len(arg) <= 1 {
-		return -1;
-	}
 	Optarg = ""
 
 	if arg[0] == '-' && arg[1] != '-' {
