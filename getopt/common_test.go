@@ -32,7 +32,6 @@ func fileline() string {
 
 func (tc *Test_case) Test(t *testing.T) {
 	i := 0
-	Getopt_reset();
 	for idx := 0; idx != -1; i += 1 {
 		idx = Getopt_long(tc.argv, tc.cfg_optstr, tc.cfg_longopt)
 		if idx == -1 {

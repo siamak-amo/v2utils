@@ -6,6 +6,7 @@ import (
 )
 
 func Test_getopt_long(t *testing.T) {
+	Getopt_reset();
 	tcase := Test_case{
 		cfg_optstr: "w:p:hvj:",
 		cfg_longopt: []Option{
@@ -30,6 +31,7 @@ func Test_getopt_long(t *testing.T) {
 
 // long option = value test
 func Test_getopt_long_equal(t *testing.T) {
+	Getopt_reset();
 	tcase := Test_case{
 		cfg_optstr: "x:",
 		cfg_longopt: []Option{
@@ -48,6 +50,7 @@ func Test_getopt_long_equal(t *testing.T) {
 
 // GNU style options test (e.g. -x666, -XPOST)
 func Test_getopt_long_gnu_style(t *testing.T) {
+	Getopt_reset();
 	tcase := Test_case{
 		cfg_optstr: "x:hX:",
 		cfg_longopt: []Option{
@@ -68,6 +71,7 @@ func Test_getopt_long_gnu_style(t *testing.T) {
 
 // Edge cases
 func Test_getopt_long_edges(t *testing.T) {
+	Getopt_reset();
 	var tcase Test_case;
 	long_opts := []Option{
 		{"value",      true,  'x'},
@@ -105,6 +109,7 @@ func Test_getopt_long_edges(t *testing.T) {
 	
 // non-existing and unexpected options test
 func Test_getopt_nonsexist_opt(t *testing.T) {
+	Getopt_reset();
 	tcase := Test_case{
 		cfg_optstr: "x:hX:",
 		cfg_longopt:  []Option{
@@ -130,6 +135,7 @@ func Test_getopt_nonsexist_opt(t *testing.T) {
 
 // Dash as argument
 func Test_getopt_dash(t *testing.T) {
+	Getopt_reset();
 	tcase := Test_case{
 		cfg_optstr: "x:hX:",
 		cfg_longopt:  []Option{
