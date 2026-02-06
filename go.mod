@@ -3,7 +3,6 @@ module github.com/siamak-amo/v2utils
 go 1.25
 
 require (
-	github.com/spf13/pflag v1.0.10
 	github.com/xtls/xray-core v1.251202.0
 	golang.org/x/term v0.37.0
 )

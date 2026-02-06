@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-package utils
+package pkg
 
 import (
 	"io"
 	"errors"
 	"encoding/json"
 
-	pkg "github.com/siamak-amo/v2utils/pkg"
+	"github.com/siamak-amo/v2utils/internal"
 )
 
 // Initializes @v2.CFG.OutboundConfig by the provided proxy URL @url
 func (v2 *V2utils) Init_Outbound_byURL(url string) (error) {
 	var e error
-	var umap pkg.URLmap
+	var umap internal.URLmap
 
 	// Parse the URL
-	umap, e = pkg.ParseURL(url);
+	umap, e = internal.ParseURL(url);
 	if nil != e {
 		return e
 	}
 	// Generate outbound config
-	if v2.CFG.OutboundConfigs, e = pkg.Gen_outbound(umap); nil != e {
+	if v2.CFG.OutboundConfigs, e = internal.Gen_outbound(umap); nil != e {
 		return e
 	}
 	return nil
@@ -48,7 +48,7 @@ func (v2 V2utils) Convert_conf2url() (string, error) {
 	if 0 >= len(v2.CFG.OutboundConfigs) {
 		return "", errors.New("Empty outbound configs")
 	}
-	url := pkg.Gen_URL(&v2.CFG.OutboundConfigs[0]);
+	url := internal.Gen_URL(&v2.CFG.OutboundConfigs[0]);
 	if nil == url {
 		return "", errors.New("Gen URL failed")
 	}

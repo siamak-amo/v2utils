@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	log "github.com/siamak-amo/v2utils/log"
-	utils "github.com/siamak-amo/v2utils/utils"	
+	pkg "github.com/siamak-amo/v2utils/pkg"
 )
 
 var (
@@ -74,11 +74,11 @@ func (opt *Opt) Apply_Default_Template() {
 func (opt Opt) Get_Default_Template() string {
 	switch (opt.Cmd) {
 	case CMD_RUN_URL, CMD_RUN_CFG:
-		return utils.DEF_Run_Template;
+		return pkg.DEF_Run_Template;
 	case CMD_TEST_URL, CMD_TEST_CFG:
-		return utils.DEF_Test_Template;
+		return pkg.DEF_Test_Template;
 	case CMD_CONVERT_URL, CMD_CONVERT_CFG:
-		return utils.DEF_Run_Template;
+		return pkg.DEF_Run_Template;
 	}
 	return "";
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-package pkg
+package internal
 
 import (
 	"io"

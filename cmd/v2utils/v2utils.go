@@ -24,7 +24,7 @@ import (
 	"strconv"
 
 	log "github.com/siamak-amo/v2utils/log"
-	utils "github.com/siamak-amo/v2utils/utils"
+	pkg "github.com/siamak-amo/v2utils/pkg"
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
 
@@ -54,7 +54,7 @@ type Opt struct {
 	cfg string // config or template file path
 	url string
 
-	V2 utils.V2utils
+	V2 pkg.V2utils
 };
 
 func (opt *Opt) GetArgs() {
@@ -86,7 +86,7 @@ func (opt *Opt) GetArgs() {
 			opt.cfg = getopt.Optarg; break;
 		case 'T':
 			var e error
-			if utils.TestTimeout, e = time.ParseDuration(getopt.Optarg); nil != e {
+			if pkg.TestTimeout, e = time.ParseDuration(getopt.Optarg); nil != e {
 				log.Errorf("set timeout option failed - %v\n", e);
 			}
 			break;
@@ -102,7 +102,7 @@ func (opt *Opt) GetArgs() {
 			opt.verbose = true; break;
 		case 'n':
 			if count, err := strconv.Atoi(getopt.Optarg); nil == err && count > 0 {
-				utils.TestCount = count
+				pkg.TestCount = count
 			}
 			break;
 		case 'h':

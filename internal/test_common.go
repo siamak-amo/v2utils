@@ -2,7 +2,7 @@
 //
 // These types are explicitly for testing purposes,
 // and they are not compatible with xray-core.
-package pkg
+package internal
 
 import (
 	"fmt"

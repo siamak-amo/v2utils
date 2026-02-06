@@ -119,6 +119,6 @@ Source code
 ===========
 
  - cmd: Dedicated to the command-line interface.
- - pkg: Contains low-level functions for converting URL <-> JSON.
- - utils: Interface to pkg, It also provides running and testing
-          Xray-core functions. It should be reusable as a library.
+ - internal: Contains low-level functions for converting URL <-> JSON.
+ - pkg: It provides running, testing and converting functionalities.
+        It is reusable as a library (interface to internal).

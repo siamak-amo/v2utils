@@ -5,137 +5,91 @@ import (
 	"io"
 	"errors"
 	"strings"
-	"net/url"
-	"encoding/json"
+
+	"github.com/siamak-amo/v2utils/internal"
+
+	"github.com/xtls/xray-core/core"
+	"github.com/xtls/xray-core/infra/conf"
+	"github.com/xtls/xray-core/infra/conf/serial"
+	"github.com/xtls/xray-core/main/confloader"
+	_ "github.com/xtls/xray-core/main/confloader/external"
+
 )
 
-type URLMapper int
-type URLmap map[URLMapper]string
+type V2utils struct {
+	CFG *conf.Config
+	set_template bool
+	Xray_instance *core.Instance // xray-core client instance
+};
 
-type Str2Str map[string]string
-type Str2Strr map[string][]string
 
-const (
-	// Common parts
-	ServerAddress URLMapper = iota
-	ServerPort
-	Protocol
-	Network
-	Security
-	// Security: TLS
-	TLS_sni
-	TLS_ALPN // Comma-separated values, no double quote
-	TLS_fp // fingerprint
-	TLS_AllowInsecure
-	// Security: reality
-	REALITY_fp // fingerprint
-	REALITY_sni
-	REALITY_Show
-	REALITY_PublicKey
-	REALITY_ShortID
-	REALITY_SpiderX
-	// Stream type specific parts
-	TCP_HeaderType         // tcp
-	TCP_HTTP_Host
-	TCP_HTTP_Path
-	WS_Path                // web socket
-	WS_Host
-	WS_Headers // Comma-separated values, no double quote
-	GRPC_Mode               // GRPC
-	GRPC_MultiMode
-	GRPC_ServiceName
-	KCP_SEED                // KCP (MKCP)
-	KCP_HType
-	XHTTP_Host              // xhttp
-	XHTTP_Path
-	XHTTP_Mode
-	XHTTP_Headers // Comma-separated values, no double quote
-	HTTPUP_Host              // http upgrade
-	HTTPUP_Path
-	HTTPUP_Headers // Comma-separated values, no double quote
-	// Protocol parts
-	Vxess_ID  // vless & vmess  we call them vxess
-	Vless_ENC
-	Vless_Level
-	Vmess_Sec
-	Vmess_AlterID
-	SS_Password
-	SS_Method
-	Trojan_Password
-)
+func GetFormatByExtension(filename string) string {
+	idx := strings.LastIndexByte(filename, '.')
+	if idx == -1 {
+		return ""
+	}
+	switch strings.ToLower(filename[idx+1:]) {
+	case "pb", "protobuf":
+		return "protobuf"
+	case "yaml", "yml":
+		return "yaml"
+	case "toml":
+		return "toml"
+	case "json", "jsonc":
+		return "json"
+	default:
+		return ""
+	}
+}
 
-func unmarshal_H (dst interface{}, input string) (error) {
-	err := json.Unmarshal ([]byte(input), dst)
-	if err != nil {
+func (v2 *V2utils) UnsetTemplate() {
+	if v2.set_template {
+		v2.CFG = nil;
+		v2.set_template = false;
+	}
+}
+
+func (v2 *V2utils) HasTemplate() bool {
+	return v2.set_template;
+}
+
+// Applies the template v2.template_path to v2.CFG
+func (v2 *V2utils) Apply_template(file_path string) error {
+	t := core.ConfigSource{
+		Name: file_path,
+		Format: GetFormatByExtension(file_path),
+	}
+	if "" == t.Format {
+		return errors.New("invalid config file extension")
+	}
+	r, err := confloader.LoadConfig(t.Name)
+	if nil != err {
 		return err
-	}
-	return nil
-}
-func unmarshal_HIO (dst interface{}, input io.Reader) (error) {
-	decoder := json.NewDecoder(input)
-    if err := decoder.Decode(dst); err != nil {
-        return err
-    }
-	return nil
-}
-
-func map_normal (m URLmap, key URLMapper, def_val string) (string){
-	val, ok := m[key]
-	if !ok || "" == val {
-		m[key] = def_val
-		return def_val
 	} else {
-		return val
-	}
-}
-
-func not_implemented (feature string) error {
-    return errors.New(feature + " not implemented")
-}
-
-// converts: `x,y,z` -> `"x", "y", "z"`
-func csv2jsonArray (csv string) string {
-	var res string
-	if 0 == len(csv) {
-		return "";
-	}
-	for _, key := range strings.Split(csv, ",") {
-		res += `"` + key + `",`
-	}
-	if len(res) >= 1 {
-		res = res[:len(res)-1]
-	}
-	return res
-}
-
-func (m Str2Strr) Pop(key string) (string) {
-	if v, ok := m[key]; ok {
-		// delete (m, key)
-		m[key] = []string{}
-		if len(v) >= 1 {
-			return v[0]
-		} else {
-			return ""
+		c, err := serial.ReaderDecoderByFormat[t.Format](r)
+		if nil != err {
+			return err
 		}
+		v2.CFG = c;
 	}
-	return ""
+	v2.set_template = true
+	return nil
 }
 
-func (m Str2Str) Pop(key string) (string) {
-	if v, ok := m[key]; ok {
-		// delete (m, key)
-		m[key] = ""
-		if len(v) >= 1 {
-			return v
-		} else {
-			return ""
-		}
+func (v2 *V2utils) Apply_template_bystr(template string) error {
+	var e error
+	if v2.CFG, e = internal.Gen_main(template); nil != e {
+		return e;
 	}
-	return ""
+	v2.set_template = true
+	return nil
 }
 
-func AddQuery(u url.Values, key,val string) {
-	if "" != key  &&  "" != val {
-		u.Add(key, val)
+func (v2 *V2utils) Apply_template_byio(rio io.Reader) error {
+	var err error
+	v2.CFG, err = internal.Gen_main_io(rio);
+	if nil == err {
+		v2.set_template = true
 	}
+	return err;
 }
