@@ -108,6 +108,16 @@ func csv2jsonArray (csv string) string {
 	return res
 }
 
+// Boolean normalizer
+func cbool (input string) string {
+	switch (input[0]) {
+	case '1', 't', 'T':
+		return "true";
+	default:
+		return "false";
+	}
+}
+
 func (m Str2Strr) Pop(key string) (string) {
 	if v, ok := m[key]; ok {
 		// delete (m, key)

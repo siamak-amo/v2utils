@@ -80,6 +80,7 @@ func set_stream_httpupgrade (args URLmap, dst *conf.StreamConfig) (error) {
 
 func set_sec_tls (args URLmap, dst *conf.StreamConfig) (error) {
 	args[TLS_ALPN] = csv2jsonArray (args[TLS_ALPN]);
+	args[TLS_AllowInsecure] = cbool (args[TLS_AllowInsecure]);
 	return unmarshal_H (&dst.TLSSettings,
 		fmt.Sprintf (
 			`{"servername": "%s", "allowInsecure": %s, "alpn": [%s], "fingerprint": "%s"}`,
