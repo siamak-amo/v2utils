@@ -13,11 +13,21 @@ const (
 
 var (
 	LogLevel int
+	ColorEnabled bool = true
 )
 
 func Must(level int) bool {
 	return (Verbose == LogLevel) ||
 		(None != LogLevel  &&  level >= LogLevel);
+}
+
+func strcolor(color int, str string) string {
+	if ! ColorEnabled {
+		return str;
+	} else {
+		c := Color{FG_color: color}
+		return c.Printfmt(str);
+	}
 }
 
 // bypass the level, always print the log
@@ -33,18 +43,18 @@ func Verbosef(format string, args ...interface{}) {
 
 func Infof(format string, args ...interface{}) {
 	if Must (Info) {
-		Flogf (os.Stderr, "Info", format, args...)
+		Flogf (os.Stderr, strcolor(COLOR_CYAN, "INFO"), format, args...)
 	}
 }
 
 func Warnf(format string, args ...interface{}) {
 	if Must (Warning) {
-		Flogf (os.Stderr, "Warning", format, args...)
+		Flogf (os.Stderr, strcolor(COLOR_YELLOW, "WARNING"), format, args...)
 	}
 }
 
 func Errorf(format string, args ...interface{}) {
 	if Must (Error) {
-		Flogf (os.Stderr, "Error", format, args...)
+		Flogf (os.Stderr, strcolor(COLOR_RED, "ERROR"), format, args...)
 	}
 }
