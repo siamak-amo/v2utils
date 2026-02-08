@@ -44,6 +44,7 @@ type Option struct {
 
 func Getopt_reset() {
 	Optind = 1
+	optoff = 0
 	Optopt = '?'
 	Optarg = ""
 }
