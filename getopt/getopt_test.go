@@ -108,6 +108,33 @@ func Test_getopt_long_edges(t *testing.T) {
 	}
 	Getopt_reset();
 	tcase.Test(t);
+	tcase = Test_case{ // empty required param option
+		cfg_optstr: "x:hX:",
+		cfg_longopt: long_opts,
+		argv: []string{"a.out", "-x"},
+		exps: []Expectation{DUMMY_EXP},
+	}
+	Getopt_reset();
+	tcase.Test(t);
+	tcase = Test_case{ // empty required param long option
+		cfg_optstr: "x:hX:",
+		cfg_longopt: long_opts,
+		argv: []string{"a.out", "--method"},
+		exps: []Expectation{DUMMY_EXP},
+	}
+	Getopt_reset();
+	tcase.Test(t);
+	tcase.Test(t);
+	tcase = Test_case{ // empty required param option
+		cfg_optstr: "x:hX:",
+		cfg_longopt: long_opts,
+		argv: []string{"a.out", "-hx"},
+		exps: []Expectation{
+			{'h', ""}, DUMMY_EXP,
+		},
+	}
+	Getopt_reset();
+	tcase.Test(t);
 }
 	
 // non-existing and unexpected options test
