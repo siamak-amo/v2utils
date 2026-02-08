@@ -126,7 +126,10 @@ func Test_getopt_nonsexist_opt(t *testing.T) {
 			"-h",
 		},
 		exps: []Expectation{
+			{'?', ""},
 			{'x', "TEST"},
+			{'?', ""},
+			{'?', ""},
 			{'h', ""},
 		},
 	}
