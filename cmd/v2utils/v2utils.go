@@ -1,19 +1,4 @@
-/* V2utils provides xray-core compatible utilities
-   Copyright 2025-2026 Ahmad <edu.siamak@gmail.com>
-
-   V2utils is free software: you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License,
-   or (at your option) any later version.
-
-   V2utils is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-   See the GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program. If not, see <https://www.gnu.org/licenses/>.
-*/
+// SPDX-License-Identifier: GPL-3.0-or-later
 package main
 
 import (
@@ -27,8 +12,6 @@ import (
 	pkg "github.com/siamak-amo/v2utils/pkg"
 	getopt "github.com/siamak-amo/v2utils/getopt"
 )
-
-const Version = "1.4";
 
 const (
 	CMD_CONVERT_URL int = iota
@@ -56,6 +39,45 @@ type Opt struct {
 
 	V2 pkg.V2utils
 };
+
+func print_usage() {
+	fmt.Fprintf (os.Stderr, "v2utils v%s - xray-core compatible utility\n", Version);
+	println (`Usage:  v2utils COMMAND [OPTIONS]
+
+COMMAND:
+      Run:  to execute Xray based on the given configuration
+     Test:  to test the current configuration has internet access
+  Convert:  to convert the current configuration to a different format
+
+OPTIONS:
+    -u, --url             VPN url (e.g. vless:// trojan://)
+    -c, --config          path to config file or folder
+    -t, --template        path to template file
+                          (for Run and Convert commands)
+    -i, --input           path to input URL file
+    -o, --output          path to output folder
+    -v, --verbose         verbose
+
+Test command options:
+    -r, --reverse         only print broken configs on stdout
+    -R, --rm              to remove broken config files
+    -T, --timeout         timeout 2s, 20000ms (default 10s)
+    -n, --test-count      number of distinct tests before give up
+
+Examples:
+    # run xray by URL:
+    $ v2utils run --url 'vless://id@1.2.3.4:1234'
+
+    # test json files and remove broken ones
+    $ v2utils test --config /path/to/configs/ --rm
+
+    # convert URLs to json:
+    $ cat url.txt | v2utils convert -o /path/to/configs
+
+    # convert outbound of json files to URL:
+    $ v2utils convert --config /path/to/configs_dir
+`);
+}
 
 func (opt *Opt) GetArgs() {
 	const optstr = "i:u:f:T:t:o:c:n:Rrvh"
@@ -109,42 +131,7 @@ func (opt *Opt) GetArgs() {
 			}
 			break;
 		case 'h':
-			fmt.Fprintf(os.Stderr, `v2utils v%s - xray-core compatible utility
-Usage:  v2utils COMMAND [OPTIONS]
-
-COMMAND:
-      Run:  to execute Xray based on the given configuration
-     Test:  to test the current configuration has internet access
-  Convert:  to convert the current configuration to a different format
-
-OPTIONS:
-    -u, --url             VPN url (e.g. vless:// trojan://)
-    -c, --config          path to config file or folder
-    -t, --template        path to template file
-                          (for Run and Convert commands)
-    -i, --input           path to input URL file
-    -o, --output          path to output folder
-    -v, --verbose         verbose
-
-Test command options:
-    -r, --reverse         only print broken configs on stdout
-    -R, --rm              to remove broken config files
-    -T, --timeout         timeout 2s, 20000ms (default 10s)
-    -n, --test-count      number of distinct tests before give up
-
-Examples:
-    # run xray by URL:
-    $ v2utils run --url 'vless://id@1.2.3.4:1234'
-
-    # test json files and remove broken ones
-    $ v2utils test --config /path/to/configs/ --rm
-
-    # convert URLs to json:
-    $ cat url.txt | v2utils convert -o /path/to/configs
-
-    # convert outbound of json files to URL:
-    $ v2utils convert --config /path/to/configs_dir
-`, Version);
+			print_usage();
 			os.Exit(0);
 		}
 	}
@@ -403,4 +390,28 @@ func (opt Opt) Do() int {
 	}
 
 	return 0;
+}
+
+func init_opt() (opt *Opt) {
+	opt = &Opt{};
+	opt.GetArgs();
+	if ret := opt.HandleArgs(); ret < 0 {
+		os.Exit (-ret);
+	}
+	if ret := opt.Init(); ret < 0 {
+		os.Exit (-ret);
+	}
+	return;
+}
+
+// main loop of v2utils program (blocking)
+func main_loop(opt *Opt) {
+	for ;; {
+		if EOF := opt.GetInput(); true == EOF {
+			break;
+		}
+		if opt.Do() < 0 {
+			break;
+		}
+	}
 }
