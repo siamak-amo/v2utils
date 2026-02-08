@@ -71,7 +71,6 @@ func Test_getopt_long_gnu_style(t *testing.T) {
 
 // Edge cases
 func Test_getopt_long_edges(t *testing.T) {
-	Getopt_reset();
 	var tcase Test_case;
 	long_opts := []Option{
 		{"value",      true,  'x'},
@@ -84,12 +83,14 @@ func Test_getopt_long_edges(t *testing.T) {
 		cfg_longopt: nil,
 		exps: []Expectation{},
 	}
+	Getopt_reset();
 	tcase.Test(t);
 	tcase = Test_case{ // empty optstr
 		cfg_optstr: "",
 		cfg_longopt: nil,
 		exps: []Expectation{},
 		}
+	Getopt_reset();
 	tcase.Test(t);
 	tcase = Test_case{ // empty input
 		cfg_optstr: "x:hX:",
@@ -97,6 +98,7 @@ func Test_getopt_long_edges(t *testing.T) {
 		argv: []string{},
 		exps: []Expectation{},
 	}
+	Getopt_reset();
 	tcase.Test(t);
 	tcase = Test_case{ // no arg
 		cfg_optstr: "x:hX:",
@@ -104,6 +106,7 @@ func Test_getopt_long_edges(t *testing.T) {
 		argv: []string{"a.out"},
 		exps: []Expectation{},
 	}
+	Getopt_reset();
 	tcase.Test(t);
 }
 	
@@ -126,10 +129,10 @@ func Test_getopt_nonsexist_opt(t *testing.T) {
 			"-h",
 		},
 		exps: []Expectation{
-			{'?', ""},
+			DUMMY_EXP,
 			{'x', "TEST"},
-			{'?', ""},
-			{'?', ""},
+			DUMMY_EXP,
+			DUMMY_EXP,
 			{'h', ""},
 		},
 	}
@@ -201,7 +204,7 @@ func Test_Multiple_Opt(t *testing.T) {
 			{'c', ""}, {'x', "123"},
 			{'d', ""}, {'x', "aatest"},
 			{'e', ""},
-			{'?', ""},
+			DUMMY_EXP,
 		},
 	}
 	tcase.Test(t);
@@ -222,22 +225,23 @@ func Test_NotEnough_Param(t *testing.T) {
 		},
 		argv: []string{
 			"a.out",
-			"-x", // Not enough param, simple option
-			"-lr",
-			"--method", // Not enough param, long option
+			"-x", // no param provided
+			"-rh",
+			"--method", // no param provided
 			"-la",
-			"-q",       // Undefined option
+			"-q", // undefined option
 			"-x",  "--sort",
-			"--method", "--dir",
+			"--method",  "--dir",
 		},
 		exps: []Expectation{
-			{'l', ""}, {'r', ""},  // after wrong option -x
-			{'?', ""},
+			DUMMY_EXP,
+			{'r', ""}, {'h', ""},  // after wrong option -x
+			DUMMY_EXP,
 			{'l', ""}, {'a', ""},  // after wrong option --method
-			{'?', ""},
-			{'?', ""},
+			DUMMY_EXP, // undefined -q
+			DUMMY_EXP, // no param option -x
 			{'t', ""}, // long option after wrong option -x
-			{'?', ""},
+			DUMMY_EXP,
 			{'d', ""}, // long option after wrong option --method
 		},
 	}

@@ -133,22 +133,24 @@ beginning_of_parse:
 			}
 		}
 		if acc_param {
-			Optind += 1
 			if 2+optoff < len(arg) { // consider the rest of this parameter as option
 				Optarg = arg[2+optoff:]
 			} else { // use the next parameter
-				if Optind < len(argv) && !is_opt(argv[Optind]) {
-					Optarg = argv[Optind]
-				} else if Opterr {
-					errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
-					goto beginning_of_parse;
+				if Optind+1 < len(argv) && !is_opt(argv[Optind+1]) {
+					Optarg = argv[Optind+1]
 				} else {
 					Optopt = '?'
-					return (int)(Optopt);
+					Optind += 1
+					if Opterr {
+						errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
+						goto beginning_of_parse;
+					} else {
+						return '?';
+					}
 				}
-				Optind += 1
 			}
 			optoff = 0
+			Optind += 1
 		} else {
 			optoff += 1
 		}
@@ -174,6 +176,7 @@ beginning_of_parse:
 					Optarg = argv[Optind]
 					Optind += 1
 				} else if v.HasArg {
+					Optopt = '?';
 					if Opterr {
 						errlog("%s: option %s: requires parameter\n", argv[0], arg);
 						goto beginning_of_parse;
@@ -220,31 +223,33 @@ beginning_of_parse:
 		idx, acc_param := arg_lookup (arg, optstring);
 		if idx < 0 {
 			Optind += 1
+			Optopt = '?'
 			if Opterr {
 				errlog ("%s: invalid option  -- '%s'\n", argv[0], arg[1:2]);
 				goto beginning_of_parse;
 			} else {
-				Optopt = '?'
-				return (int)(Optopt);
+				return '?';
 			}
 		}
 		if acc_param {
-			Optind += 1
 			if 2+optoff < len(arg) { // consider the rest of this parameter as option
 				Optarg = arg[2+optoff:]
 			} else { // use the next parameter
-				if Optind < len(argv) && !is_opt(argv[Optind]) {
-					Optarg = argv[Optind]
-				} else if Opterr {
-					errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
-					goto beginning_of_parse;
+				if Optind+1 < len(argv) && !is_opt(argv[Optind+1]) {
+					Optarg = argv[Optind+1]
 				} else {
 					Optopt = '?'
-					return (int)(Optopt);
+					Optind += 1
+					if Opterr {
+						errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
+						goto beginning_of_parse;
+					} else {
+						return '?';
+					}
 				}
-				Optind += 1
 			}
 			optoff = 0
+			Optind += 1
 		} else {
 			optoff += 1
 		}

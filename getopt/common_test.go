@@ -12,6 +12,8 @@ type Expectation struct {
 	Optarg string
 }
 
+var DUMMY_EXP = Expectation{'?', ""}
+
 type Test_case struct {
 	cfg_optstr string
 	cfg_longopt []Option
