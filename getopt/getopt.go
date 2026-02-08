@@ -93,45 +93,54 @@ beginning_of_parse:
 		return -1
 	}
 	arg := argv[Optind]
+	if len(arg) < 2 || arg[0] != '-' {
+		Optind += 1
+		goto beginning_of_parse;
+	}
 	Optarg = ""
 
-	if arg[0] == '-' && arg[1] != '-' {
-		// Checking for options: -x
-		Optopt = arg[1]
-		if idx := strings.IndexByte(optstring, arg[1]); idx != -1 {
-			if idx+1 < len(optstring) && optstring[idx+1] == ':' { // accepts arg
-				if len(arg) == 2 {  // -x
-					Optind += 1
-					if Optind < len(argv) && !is_opt(argv[Optind]) {
-						Optarg = argv[Optind]
-						Optind += 1
-					} else {
-						if Opterr {
-							errlog("%s: option %s: requires parameter\n", argv[0], arg);
-							goto beginning_of_parse;
-						} else {
-							return '?';
-						}
-					}
-				} else if len(arg) > 2 { // -xXXX GNU style
-					Optarg = argv[Optind][2:]
-					Optind += 1
-				}
-			} else { // no arg
-				Optind += 1
-			}
-			return (int)(arg[1])
-		} else {
+	// cases:  '-x', '-x123', '-xyz'
+	if arg[1] != '-' {
+		if 1+optoff >= len(arg) {
+			optoff = 0
+			Optind += 1
+			goto beginning_of_parse;
+		}
+		idx, acc_param := arg_lookup (arg, optstring);
+		if idx < 0 {
 			Optind += 1
 			if Opterr {
-				errlog("%s: invalid option  -- '%s'\n", argv[0], arg[1:2]);
+				errlog ("%s: invalid option  -- '%s'\n", argv[0], arg[1:2]);
 				goto beginning_of_parse;
 			} else {
-				return '?'
+				Optopt = '?'
+				return (int)(Optopt);
 			}
 		}
-	} else if arg[0] == '-' && arg[1] == '-' {
-		// Checking for long options --xxx
+		if acc_param {
+			Optind += 1
+			if 2+optoff < len(arg) { // consider the rest of this parameter as option
+				Optarg = arg[2+optoff:]
+			} else { // use the next parameter
+				if Optind < len(argv) && !is_opt(argv[Optind]) {
+					Optarg = argv[Optind]
+				} else if Opterr {
+					errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
+					goto beginning_of_parse;
+				} else {
+					Optopt = '?'
+					return (int)(Optopt);
+				}
+				Optind += 1
+			}
+			optoff = 0
+		} else {
+			optoff += 1
+		}
+		return (int)(Optopt);
+	}
+	// cases:  '--key val', '--key=val', '--'
+	if arg[1] == '-' {
 		if len(arg) == 2 {
 			Optopt = '?'
 			return -1 // End of Options (--)
@@ -168,9 +177,6 @@ beginning_of_parse:
 		} else {
 			return '?'
 		}
-	} else {
-		Optind += 1
-		goto beginning_of_parse;
 	}
 
 	return 0
