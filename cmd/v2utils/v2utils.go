@@ -57,6 +57,7 @@ OPTIONS:
     -i, --input           path to input URL file
     -o, --output          path to output folder
     -v, --verbose         verbose
+        --no-color        disable log color
 
 Test command options:
     -r, --reverse         only print broken configs on stdout
@@ -80,7 +81,7 @@ Examples:
 }
 
 func (opt *Opt) GetArgs() {
-	const optstr = "i:u:f:T:t:o:c:n:Rrvh"
+	const optstr = "i:u:f:T:t:o:c:n:RrvhC"
 	lopts := []getopt.Option{
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
@@ -94,6 +95,7 @@ func (opt *Opt) GetArgs() {
 		{"help",          false, 'h'},
 		{"test-count",    true,  'n'},
 		{"tc",            true,  'n'},
+		{"no-color",      false, 'C'},
 	}
 	argv := os.Args
 	for idx := 0; -1 != idx; {
@@ -130,6 +132,8 @@ func (opt *Opt) GetArgs() {
 				pkg.TestCount = count
 			}
 			break;
+		case 'C':
+			log.ColorEnabled = false; break;
 		case 'h':
 			print_usage();
 			os.Exit(0);
