@@ -81,7 +81,10 @@ func (opt *Opt) GetArgs() {
 		case 'u':
 			opt.urls = append (opt.urls, getopt.Optarg); break;
 		case 'c':
-			opt.configs = append (opt.configs, getopt.Optarg); break;
+			for i := getopt.Optind-1; i < len(argv) && '-' != argv[i][0]; i += 1 {
+				opt.configs = append (opt.configs, argv[i]);
+			}
+			break;
 		case 't':
 			opt.cfg = getopt.Optarg; break;
 		case 'T':
