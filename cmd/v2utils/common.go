@@ -36,10 +36,10 @@ func (opt *Opt) Init_CFG() error {
 		if Isatty(os.Stdin) {
 			println ("Reading json config from STDIN until EOF:")
 		}
-		return opt.V2.Apply_template_byio (os.Stdin);
+		return opt.v2.Apply_template_byio (os.Stdin);
 	} else {
 		if "" != opt.cfg {
-			return opt.V2.Apply_template (opt.cfg)
+			return opt.v2.Apply_template (opt.cfg)
 		} else {
 			opt.Apply_Default_Template();
 		}
@@ -48,31 +48,31 @@ func (opt *Opt) Init_CFG() error {
 }
 
 func (opt *Opt) Test_CFG() (bool, int64) {
-	return opt.V2.Test_CFG(opt.cfg);
+	return opt.v2.Test_CFG(opt.cfg);
 }
 func (opt *Opt) Test_URL() (bool, int64) {
-	return opt.V2.Test_URL(opt.url);
+	return opt.v2.Test_URL(opt.url);
 }
 
 func (opt *Opt) Apply_URL() error {
-	return opt.V2.Apply_URL(opt.url);
+	return opt.v2.Apply_URL(opt.url);
 }
 func (opt *Opt) Init_Outbound_byURL() error {
-	return opt.V2.Init_Outbound_byURL(opt.url);
+	return opt.v2.Init_Outbound_byURL(opt.url);
 }
 func (opt *Opt) Apply_template() error {
-	return opt.V2.Apply_template(opt.cfg);
+	return opt.v2.Apply_template(opt.cfg);
 }
 
 func (opt *Opt) Apply_Default_Template() {
-	e := opt.V2.Apply_template_bystr( opt.Get_Default_Template() );
+	e := opt.v2.Apply_template_bystr( opt.Get_Default_Template() );
 	if nil != e {
 		panic(e); // it's ours, the default template is broken.
 	}
 }
 
 func (opt Opt) Get_Default_Template() string {
-	switch (opt.Cmd) {
+	switch (opt.cmd) {
 	case CMD_RUN_URL, CMD_RUN_CFG:
 		return pkg.DEF_Run_Template;
 	case CMD_TEST_URL, CMD_TEST_CFG:
@@ -85,7 +85,7 @@ func (opt Opt) Get_Default_Template() string {
 
 func (opt Opt) MK_josn_output(url string) error {
 	if "" == opt.output_dir {
-		if err := opt.V2.CFG_Out(os.Stdout, !Isatty(os.Stdout)); nil != err {
+		if err := opt.v2.CFG_Out(os.Stdout, !Isatty(os.Stdout)); nil != err {
 			return err;
 		}
 	} else {
@@ -99,7 +99,7 @@ func (opt Opt) MK_josn_output(url string) error {
 			return err
 		}
 		defer of.Close()
-		if err := opt.V2.CFG_Out(of, true); nil != err {
+		if err := opt.v2.CFG_Out(of, true); nil != err {
 			return err
 		} else {
 			log.Verbosef("Wrote: %s\n", path)

@@ -24,7 +24,7 @@ const (
 
 type Opt struct {
 	// User options
-	Cmd int                 // CMD_xxx
+	cmd int                 // CMD_xxx
 	urls []string
 	configs []string		// file or dir for testing
 	output_dir string		// output dir
@@ -37,7 +37,7 @@ type Opt struct {
 	cfg string // config or template file path
 	url string
 
-	V2 pkg.V2utils
+	v2 pkg.V2utils
 };
 
 func print_usage() {
@@ -139,31 +139,31 @@ func (opt *Opt) GetArgs() {
 
 func (opt *Opt) Set2_convert() int {
 	if 0 < len(opt.configs) {
-		opt.Cmd = CMD_CONVERT_CFG;
+		opt.cmd = CMD_CONVERT_CFG;
 	} else {
 		// Default: converting URLs (stdin / --url)
-		opt.Cmd = CMD_CONVERT_URL;
+		opt.cmd = CMD_CONVERT_URL;
 	}
 	return 0;
 }
 func (opt *Opt) Set2_test() int {
 	if 0 < len(opt.configs) {
 		// For Testing config (.json) files
-		opt.Cmd = CMD_TEST_CFG;
+		opt.cmd = CMD_TEST_CFG;
 	} else {
 		// Default: testing URLs
-		opt.Cmd = CMD_TEST_URL;
+		opt.cmd = CMD_TEST_URL;
 	}
 	return 0;
 }
 func (opt *Opt) Set2_run() int {
 	if 0 < len(opt.configs) {
-		opt.Cmd = CMD_RUN_CFG;
+		opt.cmd = CMD_RUN_CFG;
 	} else if 0 < len(opt.urls) {
-		opt.Cmd = CMD_RUN_URL;
+		opt.cmd = CMD_RUN_URL;
 	} else {
 		log.Warnf("neither URL nor config file is provided, assuming to read URL.\n");
-		opt.Cmd = CMD_RUN_URL;
+		opt.cmd = CMD_RUN_URL;
 	}
 	return 0;
 }
@@ -211,7 +211,7 @@ func (opt *Opt) Init() int {
 		return -1
 	}
 
-	switch (opt.Cmd) {
+	switch (opt.cmd) {
 	case CMD_RUN_URL:
 		opt.Set_rd_url()
 		break;
@@ -249,9 +249,9 @@ func (opt *Opt) Init() int {
 // @return:  0 on success, positive of failure
 //    negative on Fatal failures and Exit request
 func (opt Opt) Do() int {
-	switch (opt.Cmd) {
+	switch (opt.cmd) {
 	case CMD_CONVERT_URL:
-		if !opt.V2.HasTemplate() {
+		if !opt.v2.HasTemplate() {
 			if "" != opt.cfg {
 				if e := opt.Apply_template(); nil != e {
 					log.Errorf("broken or invalid template - %v\n", e);
@@ -274,7 +274,7 @@ func (opt Opt) Do() int {
 		break;
 
 	case CMD_RUN_URL:
-		if !opt.V2.HasTemplate() {
+		if !opt.v2.HasTemplate() {
 			if e := opt.Init_CFG(); nil != e {
 				log.Errorf("Invalid template - %v\n", e)
 				return -1;
@@ -288,14 +288,14 @@ func (opt Opt) Do() int {
 			log.Warnf("No template is provided, using the default template: %s\n",
 				opt.Get_Default_Template());
 		}
-		if e := opt.V2.Exec_Xray(); nil != e {
+		if e := opt.v2.Exec_Xray(); nil != e {
 			log.Errorf("Exec xray-core failed - %v\n", e)
 			return 1;
 		}
 		return -1; // The run command, only uses the first provided URL
 
 	case CMD_TEST_URL:
-		opt.V2.UnsetTemplate()
+		opt.v2.UnsetTemplate()
 		result, duration := opt.Test_URL()
 		if ! opt.reverse {
 			if result {
@@ -327,7 +327,7 @@ func (opt Opt) Do() int {
 	case CMD_TEST_CFG:
 		res := false
 		var duration int64
-		opt.V2.UnsetTemplate()
+		opt.v2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
 			log.Errorf("Loading config file '%s' failed - %v\n", opt.cfg, e)
 		} else {
@@ -360,7 +360,7 @@ func (opt Opt) Do() int {
 		break;
 
 	case CMD_RUN_CFG:
-		opt.V2.UnsetTemplate()
+		opt.v2.UnsetTemplate()
 		if "-" != opt.cfg {
 			log.Infof("Loading config: %s\n", opt.cfg)
 		}
@@ -368,19 +368,19 @@ func (opt Opt) Do() int {
 			log.Errorf("Loading config '%s' failed - %v\n", opt.cfg, e)
 			return -1;
 		}
-		if e := opt.V2.Exec_Xray(); nil != e {
+		if e := opt.v2.Exec_Xray(); nil != e {
 			log.Errorf("Exec xray-core failed - %v\n", e)
 			return -1;
 		}
 		return -1; // RUN_CFG only uses the first input
 
 	case CMD_CONVERT_CFG:
-		opt.V2.UnsetTemplate()
+		opt.v2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
 			log.Errorf("Loading config '%s' failed - %v\n", opt.cfg, e)
 			return 1;
 		}
-		res, e := opt.V2.Convert_conf2url();
+		res, e := opt.v2.Convert_conf2url();
 		if nil != e {
 			log.Warnf ("Converting '%s' to URL failed - %v\n", opt.cfg, e);
 		} else {
