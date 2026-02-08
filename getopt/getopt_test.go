@@ -59,11 +59,11 @@ func Test_getopt_long_gnu_style(t *testing.T) {
 			{"help",       false, 'h'},
 		},
 		argv: []string{
-			"a.out", "--help",  "-x666", "-XPOST",
+			"a.out", "--help",  "-x666", "-XPOST", "-x777",
 		},
 		exps: []Expectation{
 			{'h', ""},
-			{'x', "666"}, {'X', "POST"},
+			{'x', "666"}, {'X', "POST"}, {'x', "777"},
 		},
 	}
 	tcase.Test(t);
@@ -181,4 +181,65 @@ func Test_eof_options(t *testing.T) {
 	if Optind != 2 { // index of '--'
 		t.Fatalf("Optind is not set properly")
 	}
+}
+
+// GNU like -xyz option
+func Test_Multiple_Opt(t *testing.T) {
+	Getopt_reset();
+	tcase := Test_case{
+		cfg_optstr: "abcdefx:",
+		cfg_longopt:  []Option{},
+		argv: []string{
+			"a.out",
+			"-ab", // two separate options
+			"-cx", "123", // with accept arg
+			"-dxaatest",  // aatest should be in optarg
+			"-ex", // should make a no argument warning
+		},
+		exps: []Expectation{
+			{'a', ""}, {'b', ""},
+			{'c', ""}, {'x', "123"},
+			{'d', ""}, {'x', "aatest"},
+			{'e', ""},
+			{'?', ""},
+		},
+	}
+	tcase.Test(t);
+}
+
+// parameter required error test
+func Test_NotEnough_Param(t *testing.T) {
+	Getopt_reset();
+	tcase := Test_case{
+		cfg_optstr: "x:y:ltrhad",
+		cfg_longopt:  []Option{
+			{"method",     true,  'x'},
+			{"long",       false, 'l'},
+			{"reverse",    false, 'r'},
+			{"all",        false, 'a'},
+			{"sort",       false, 't'},
+			{"dir",        false, 'd'},
+		},
+		argv: []string{
+			"a.out",
+			"-x", // Not enough param, simple option
+			"-lr",
+			"--method", // Not enough param, long option
+			"-la",
+			"-q",       // Undefined option
+			"-x",  "--sort",
+			"--method", "--dir",
+		},
+		exps: []Expectation{
+			{'l', ""}, {'r', ""},  // after wrong option -x
+			{'?', ""},
+			{'l', ""}, {'a', ""},  // after wrong option --method
+			{'?', ""},
+			{'?', ""},
+			{'t', ""}, // long option after wrong option -x
+			{'?', ""},
+			{'d', ""}, // long option after wrong option --method
+		},
+	}
+	tcase.Test(t);
 }
