@@ -110,6 +110,9 @@ func csv2jsonArray (csv string) string {
 
 // Boolean normalizer
 func cbool (input string) string {
+	if 0 == len(input) {
+		return "false";
+	}
 	switch (input[0]) {
 	case '1', 't', 'T':
 		return "true";

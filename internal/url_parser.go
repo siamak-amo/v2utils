@@ -147,7 +147,7 @@ func __security_parser_vless_trojan (dst URLmap, src Str2Strr) {
 		dst[TLS_fp] = src.Pop ("fp")
 		dst[TLS_sni] = src.Pop ("sni")
 		dst[TLS_ALPN] = src.Pop ("alpn")
-		dst[TLS_AllowInsecure] = src.Pop ("allowInsecure")
+		dst[TLS_AllowInsecure] = cbool(src.Pop ("allowInsecure"))
 		break;
 
 	case "reality":
@@ -169,7 +169,7 @@ func __security_parser_vmess (dst URLmap, src Str2Str) {
 		dst[TLS_sni] = src.Pop ("sni")
 		dst[TLS_fp] = src.Pop ("fp")
 		dst[TLS_ALPN] = src.Pop ("alpn")
-		dst[TLS_AllowInsecure] = src.Pop ("allowInsecure")
+		dst[TLS_AllowInsecure] = cbool(src.Pop ("allowInsecure"))
 	}
 }
 

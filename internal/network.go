@@ -90,6 +90,7 @@ func set_sec_tls (args URLmap, dst *conf.StreamConfig) (error) {
 }
 
 func set_sec_reality (args URLmap, dst *conf.StreamConfig) (error) {
+	args[REALITY_Show] = cbool (args[REALITY_Show]);
 	return unmarshal_H (&dst.REALITYSettings,
 		fmt.Sprintf (
 			`{"serverName": "%s", "fingerprint": "%s", "show": %s,
