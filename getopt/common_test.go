@@ -65,6 +65,15 @@ func (tc *Test_case) Test(t *testing.T) {
 			)
 			return
 		}
+		if tc.exps[i].Value != (byte)(Optopt) {
+			t.Fatalf(`
+%s:  Test #%d failed - wrong optopt value:
+     (expected: '%c') != (actual: '%c')
+`,
+				fileline(), i, tc.exps[i].Value, (byte)(Optopt),
+			)
+			return
+		}
 		if tc.exps[i].Optarg != Optarg {
 			t.Fatalf(`
 %s:  Test #%d failed - wrong optarg value:
