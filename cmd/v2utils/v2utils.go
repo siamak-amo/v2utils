@@ -81,7 +81,7 @@ Examples:
 }
 
 func (opt *Opt) GetArgs() {
-	const optstr = "i:u:f:T:t:o:c:n:RrvhC"
+	const optstr = "i:u:f:T:t:o:c:n:RrVvhC"
 	lopts := []getopt.Option{
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
@@ -91,11 +91,12 @@ func (opt *Opt) GetArgs() {
 		{"input",         true,  'i'},
 		{"reverse",       false, 'r'},
 		{"rm",            false, 'R'},
-		{"verbose",       false, 'v'},
 		{"help",          false, 'h'},
 		{"test-count",    true,  'n'},
 		{"tc",            true,  'n'},
 		{"no-color",      false, 'C'},
+		{"verbose",       false, 'v'},
+		{"version",       false, 'V'},
 	}
 	argv := os.Args
 	for idx := 0; -1 != idx; {
@@ -134,6 +135,9 @@ func (opt *Opt) GetArgs() {
 			break;
 		case 'C':
 			log.ColorEnabled = false; break;
+		case 'V':
+			printVersion();
+			os.Exit(0);
 		case 'h':
 			print_usage();
 			os.Exit(0);
@@ -195,8 +199,16 @@ func (opt *Opt) HandleArgs() int {
 			return opt.Set2_test();
 		case "run","Run","RUN", "r","R":
 			return opt.Set2_run();
+		case "v", "ver", "version":
+			printVersion();
+			os.Exit(0);
 		default:
-			println ("Invalid command.");
+			if '-' == argv[1][0] {
+				println ("No command is provided.");
+			} else {
+				fmt.Fprintf (os.Stderr, "Invalid command `%s'.\n", argv[1]);
+			}
+			println ("Try 'v2utils --help' for more information.");
 			return -1
 		}
 	}

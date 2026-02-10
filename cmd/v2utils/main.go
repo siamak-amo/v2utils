@@ -16,9 +16,6 @@
 */
 package main
 
-// V2utils current version
-const Version = "1.4";
-
 
 func main() {
 	// Initializing user options

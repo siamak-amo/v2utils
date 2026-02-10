@@ -3,6 +3,7 @@
 *.dll
 *.so
 *.dylib
+build
 
 /v2utils
 *.test

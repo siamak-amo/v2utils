@@ -2,12 +2,14 @@ GOCC = go
 
 CMD_DIR = ./cmd
 SRC_DIRS = ./pkg ./getopt
+
+BUILD_DIR = ./build
 BINS = v2utils
 
 main: $(BINS)
 
-$(BINS):
-	$(GOCC) build -o v2utils -v $(CMD_DIR)/$@
+v2utils:
+	$(GOCC) build -o $(BUILD_DIR)/v2utils -v $(CMD_DIR)/$@
 
 debug:
 	$(GOCC) build -tags debug -o v2utils -v $(CMD_DIR)/
