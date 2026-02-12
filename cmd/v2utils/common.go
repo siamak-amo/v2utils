@@ -47,11 +47,48 @@ func (opt *Opt) Init_CFG() error {
 	return nil
 }
 
-func (opt *Opt) Test_CFG() (bool, int64) {
-	return opt.v2.Test_CFG(opt.cfg);
+func result2string(result *pkg.TestResult) string {
+	if "" != result.IP {
+		return fmt.Sprintf("[IP: %s] (%dms)", result.IP, result.Duration);
+	} else {
+		return fmt.Sprintf("(%dms)", result.Duration);
+	}
 }
-func (opt *Opt) Test_URL() (bool, int64) {
-	return opt.v2.Test_URL(opt.url);
+
+func (opt *Opt) Test_CFG() (bool) {
+	err, result := opt.v2.Test_CFG(opt.cfg, pkg.SimpleTester);
+
+	if nil == err && opt.verbose {
+		log.Infof("File '%s':  %s OK.\n", opt.cfg, result2string(result));
+	}
+	if ! opt.reverse {
+		if nil == err {
+			fmt.Println(opt.cfg);
+		} else {
+			log.Warnf("File '%s' is broken.\n", opt.cfg)
+		}
+	} else if nil != err { // Only print broken configs
+		fmt.Println(opt.cfg);
+	}
+	return (err == nil);
+}
+
+func (opt *Opt) Test_URL() (bool) {
+	err, result := opt.v2.Test_URL(opt.url, pkg.SimpleTester);
+
+	if nil == err && opt.verbose {
+		log.Infof("URL '%s':  %s OK.\n", opt.url, result2string(result));
+	}
+	if ! opt.reverse {
+		if nil == err {
+			fmt.Println(opt.url)
+		} else {
+			log.Warnf("URL '%s' is broken.\n", opt.url);
+		}
+	} else if nil != err { // Only print broken urls
+		fmt.Println(opt.url);
+	}
+	return (nil == err);
 }
 
 func (opt *Opt) Apply_URL() error {

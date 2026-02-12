@@ -3,10 +3,9 @@ package pkg
 
 import (
 	"time"
+	"errors"
 	"context"
 	"net/http"
-
-	log "github.com/siamak-amo/v2utils/log"
 
 	core "github.com/xtls/xray-core/core"
 	xnet "github.com/xtls/xray-core/common/net"
@@ -14,13 +13,14 @@ import (
 )
 
 const (
-	// Default test endpoint
-	Test_Endpoint_0 = "http://www.google.com"
-	// IP address API test endpoints
-    Test_Endpoint_1 = "http://api4.ipify.org"
-    Test_Endpoint_2 = "http://v4.api.ipinfo.io/ip"
-    Test_Endpoint_3 = "http://check-host.net/ip"
-    Test_Endpoint_4 = "http://ipv4.icanhazip.com"
+	// Default test endpoint, does not report IP
+	Test_Endpoint_goog = "http://www.google.com"
+
+	// API to report IP address
+    Test_Endpoint_ip1 = "http://api4.ipify.org"
+    Test_Endpoint_ip2 = "http://v4.api.ipinfo.io/ip"
+    Test_Endpoint_ip3 = "http://check-host.net/ip"
+    Test_Endpoint_ip4 = "http://ipv4.icanhazip.com"
 )
 
 var (
@@ -29,33 +29,77 @@ var (
 	// Maximum number of endpoints to test
 	TestCount int = 3
 
-	TestEndpoints = []string{
-		Test_Endpoint_0,
-		Test_Endpoint_1, Test_Endpoint_2, Test_Endpoint_3, Test_Endpoint_4,
-	}
+	GiveUp_Testing = errors.New("i gave up.")
 )
 
-// @return:  test result (bool),  time duration (int64) in milliseconds
-func (v2 V2utils) doTest() (bool, int64) {
-	if e := v2.Run_Xray(); nil != e {
-		log.Warnf ("Could not run the xray server - %v\n", e)
-		return false, 0;
-	}
+type TestResult struct {
+	IP string
+	Duration int64
+}
 
+type ConnectivityTester_I interface {
+    Test(v2 *V2utils) (error, *TestResult)
+}
+
+// Simple connectivity tester
+type Simple_Contester struct {
+	endpoints []string
+}
+// Connectivity tester with IP report
+type IP_Contester struct {
+	endpoints []string
+}
+
+
+// Connectivity testers
+var (
+	// Simple report of duration and connectivity
+	SimpleTester = &Simple_Contester{
+		endpoints: []string{
+			Test_Endpoint_goog,
+			Test_Endpoint_ip1, Test_Endpoint_ip2,
+			Test_Endpoint_ip3, Test_Endpoint_ip4,
+		},
+	};
+
+	// Advanced tester, also reports IP address
+	AdvancedTester = &IP_Contester{
+		endpoints: []string{
+			Test_Endpoint_ip1, Test_Endpoint_ip2,
+			Test_Endpoint_ip3, Test_Endpoint_ip4,
+		},
+	};
+)
+
+func (tester *Simple_Contester) Test(v2 *V2utils) (error, *TestResult) {
 	for n := 0;; {
-		for _, endpoint := range TestEndpoints {
+		for _, endpoint := range tester.endpoints {
 			if n += 1; n > TestCount {
-				goto give_up;
+				return GiveUp_Testing, nil;
 			}
 			if err, time := v2.test_http(endpoint); nil == err {
-				return true, time;
+				return nil, &TestResult{Duration: time};
+			} else {
+				// log it maybe:
+				// println(err.Error());
 			}
 		}
 	}
+	return GiveUp_Testing, nil;
+}
 
-give_up:
-	v2.Kill_Xray()
-	return false, 0;
+func (tester *IP_Contester) Test(v2 *V2utils) (error, *TestResult) {
+	panic (errors.New("Not implemented."));
+	return nil, nil;
+}
+
+func (v2 *V2utils) doTest(tester ConnectivityTester_I) (err error, res *TestResult) {
+	if e := v2.Run_Xray(); nil != e {
+		return e, nil;
+	}
+	err, res = tester.Test(v2);
+	v2.Kill_Xray();
+	return;
 }
 
 // This will utilize the xray-core Dial function (DialContext compatible)
@@ -80,7 +124,6 @@ func (v2 V2utils) test_http(addr string) (res error, duration int64) {
 	httpTransport := http.Transport{DialContext: v2.CustomDial}
 	client := http.Client{Transport: &httpTransport}
 	if _, err := client.Do(req); err != nil {
-		log.Infof("Broken VPN :( %v\n", err)
 		return err, 0
 	}
 
@@ -92,23 +135,23 @@ func (v2 V2utils) test_http(addr string) (res error, duration int64) {
 // It will not create any local listening proxy, instead
 // it passes a simple HTTP request through the running
 // xray-core instance @v2.Xray_instance.
-func (v2 *V2utils) Test_URL(url string) (result bool, duration int64) {
+func (v2 *V2utils) Test_URL(url string, tester ConnectivityTester_I) (error, *TestResult) {
 	v2.Apply_template_bystr(DEF_Test_Template);
 	if e := v2.Init_Outbound_byURL(url); nil != e {
-		return false, 0
+		return e, nil
 	}
-	return v2.doTest();
+	return v2.doTest(tester);
 }
 
 // Tests a config file @path
-func (v2 *V2utils) Test_CFG(path string) (result bool, duration int64) {
+func (v2 *V2utils) Test_CFG(path string, tester ConnectivityTester_I) (error, *TestResult) {
 	if e := v2.Apply_template(path); nil != e || nil == v2.CFG {
-		return false, 0
+		return e, nil
 	}
 
 	// We should eliminate 'inbounds' section for testing,
-	// as the inbound proxy port(s), may be in use, so leading to
-	// false-positive results.
+	// as the inbound proxy port(s), may be in use, so may
+	// lead to true-negative results.
 	v2.CFG.InboundConfigs = nil
 
 	// Logs from the instance, interferes with our logs
@@ -118,5 +161,5 @@ func (v2 *V2utils) Test_CFG(path string) (result bool, duration int64) {
 		v2.CFG.LogConfig = &conf.LogConfig{LogLevel: "none"}
 	}
 
-	return v2.doTest();
+	return v2.doTest(tester);
 }

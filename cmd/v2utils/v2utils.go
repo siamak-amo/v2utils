@@ -312,25 +312,9 @@ func (opt Opt) Do() int {
 
 	case CMD_TEST_URL:
 		opt.v2.UnsetTemplate()
-		result, duration := opt.Test_URL()
-		if ! opt.reverse {
-			if result {
-				fmt.Println(opt.url)
-				if opt.verbose {
-					log.Infof("`%s` OK (%d ms).\n", opt.url, duration)
-				}
-			} else {
-				log.Warnf("Broken URL '%s'\n", opt.url);
-			}
-		} else { // Only print broken urls
-			if ! result {
-				fmt.Println(opt.url);
-			} else if opt.verbose {
-				log.Infof("`%s` OK (%d ms).\n", opt.url, duration)
-			}
-		}
+		res := opt.Test_URL()
 		// Generating json files if applicable
-		if result && "" != opt.output_dir {
+		if res && "" != opt.output_dir {
 			if e := opt.MK_josn_output(opt.url); nil != e {
 				log.Errorf("IO error: %v\n", e);
 				log.Errorf("Fatal error, exiting.\n");
@@ -342,30 +326,12 @@ func (opt Opt) Do() int {
 		// For xxx_CFG commands, @ln is path to a file or `-` for stdin
 	case CMD_TEST_CFG:
 		res := false
-		var duration int64
 		opt.v2.UnsetTemplate()
 		if e := opt.Init_CFG(); nil != e {
 			log.Errorf("Loading config file '%s' failed - %v\n", opt.cfg, e)
 		} else {
-			res, duration = opt.Test_CFG()
+			res = opt.Test_CFG()
 		}
-		if ! opt.reverse {
-			if res {
-				fmt.Println(opt.cfg);
-				if opt.verbose {
-					log.Infof ("config file '%s':  OK (%d ms).\n", opt.cfg, duration);
-				}
-			} else {
-				log.Warnf("config file '%s' is broken\n", opt.cfg)
-			}
-		} else { // Only print broken configs
-			if !res {
-				fmt.Println(opt.cfg);
-			} else {
-				log.Infof("config file '%s':  OK (%d ms).\n", opt.cfg, duration)
-			}
-		}
-
 		if !res && opt.rm { // We are not in reverse mode here
 			if e := os.Remove(opt.cfg); nil != e {
 				log.Errorf("Could not remove %s - %v\n", opt.cfg, e)
