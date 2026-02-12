@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 
+	log "github.com/siamak-amo/v2utils/log"
+
 	core "github.com/xtls/xray-core/core"
 	xnet "github.com/xtls/xray-core/common/net"
 	conf "github.com/xtls/xray-core/infra/conf"
@@ -32,7 +34,8 @@ var (
 	// Maximum number of endpoints to test
 	TestCount int = 3
 
-	GiveUp_Testing = errors.New("i gave up.")
+	// Returned when max allowed tests failed
+	Not_Responding_Error = errors.New("Not responding VPN")
 )
 
 type TestResult struct {
@@ -78,42 +81,41 @@ func (tester *Simple_Contester) Test(v2 *V2utils) (error, *TestResult) {
 	for n := 0;; {
 		for _, endpoint := range tester.endpoints {
 			if n += 1; n > TestCount {
-				return GiveUp_Testing, nil;
+				return Not_Responding_Error, nil;
 			}
 			if err, dur, _ := v2.test_http(endpoint, false); nil == err {
 				return nil, &TestResult{ Duration: dur };
 			} else {
-				// log it maybe:
-				// println(err.Error());
+				log.Debugf("Test failed - %s\n", err);
 			}
 		}
 	}
-	return GiveUp_Testing, nil;
+	return Not_Responding_Error, nil;
 }
 
 func (tester *IP_Contester) Test(v2 *V2utils) (error, *TestResult) {
 	for n := 0;; {
 		for _, endpoint := range tester.endpoints {
 			if n += 1; n > TestCount {
-				return GiveUp_Testing, nil;
+				return Not_Responding_Error, nil;
 			}
 			if err, dur, body := v2.test_http(endpoint, true); nil == err {
 				res := &TestResult{ Duration: dur }
 				if ip := net.ParseIP(string(body)); nil != ip {
 					res.IP = ip.String()
 				} else {
-					// API did not return an IP, there is noting we can do
-					// to report the IP of the current VPN config!
+					// The API did not return a valid IP address
+					// We cannot do anything about it right now
 					res.IP = ""
+					log.Debugf("unexpected value in '%s' response.\n", endpoint);
 				}
 				return nil, res;
 			} else {
-				// log it maybe:
-				// println("test #n failed: " + err.Error());
+				log.Debugf("Test failed - %s\n", err);
 			}
 		}
 	}
-	return GiveUp_Testing, nil;
+	return Not_Responding_Error, nil;
 }
 
 func (v2 *V2utils) doTest(tester ConnectivityTester_I) (err error, res *TestResult) {

@@ -33,3 +33,7 @@ func MiniFlogf(out *os.File, format string, args ...interface{}) {
 		fmt.Fprintf (out, format, args...);
 	}
 }
+
+func Debugf(format string, args ...interface{}) {
+	MiniFlogf (os.Stderr, format, args...);
+}

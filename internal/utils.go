@@ -70,7 +70,7 @@ func Gen_outbound(args URLmap) (dst []conf.OutboundDetourConfig, e error) {
 		if e == nil {
 			dst = append (dst, *v)
 		} else {
-			log.Errorf("Vmess Error:  %v\n", e)
+			log.Errorf("Trojan Error:  %v\n", e)
 			return nil, e
 		}
 		break

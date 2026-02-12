@@ -35,6 +35,10 @@ func Logf(format string, args ...interface{}) {
 	MiniFlogf (os.Stderr, format, args...)
 }
 
+func Debugf(format string, args ...interface{}) {
+	// NOP()  only print it when `-tags debug' is used
+}
+
 func Verbosef(format string, args ...interface{}) {
 	if (Verbose == LogLevel) {
 		MiniFlogf (os.Stderr, format, args...)

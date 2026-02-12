@@ -31,7 +31,6 @@ func (tc *TestCase[T]) Do (data any) {
 }
 
 // Call it with ONLY ONE function call depth
-// this happens if your language doesn't support macro
 func printFailure(actual, expected interface{}) {
 	if _, file, line, ok := runtime.Caller(2); ok {
 		fmt.Printf ("%s:%d:  test failed.\n\t", file, line)

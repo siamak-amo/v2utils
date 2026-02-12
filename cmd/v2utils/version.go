@@ -9,9 +9,9 @@ import (
 )
 
 // V2utils current version
-const Version = "1.5";
+const Version = "1.6";
 
-// Prints version of v2ray and xray
+// Prints version of v2utils and xray
 func printVersion() {
 	fmt.Fprintf (os.Stderr,`V2utils %s - Xray-Core compatible utility.
 
