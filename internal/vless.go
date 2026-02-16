@@ -24,14 +24,14 @@ func Gen_vless(args URLmap) (dst *conf.OutboundDetourConfig, e error) {
                     "address": "%s",
                     "port": %s,
                     "users": [{
-                      "encryption": "%s",  "level": %s,  "id": "%s"
+                      "encryption": "%s",  "level": %s,  "id": "%s",  "flow": "%s"
                     }]
                   }
                 ]},
                 "tag": "proxy"
              }`,
             args[Protocol], args[ServerAddress], args[ServerPort],
-            args[Vless_ENC], args[Vless_Level], args[Vxess_ID],
+            args[Vless_ENC], args[Vless_Level], args[Vxess_ID], args[Vless_Flow],
         )); nil != e {
         // log
 		return
@@ -60,6 +60,7 @@ func Gen_vless_URL(src *conf.OutboundDetourConfig) *url.URL {
 	q := u.Query()
 	AddQuery (q, "level", strconv.Itoa(vnext.Users[0].Level))
 	AddQuery (q, "encryption", vnext.Users[0].Encryption)
+	AddQuery (q, "flow", vnext.Users[0].Flow)
 	Init_vlessURL_stream(src.StreamSetting, q)
 
 	u.RawQuery = q.Encode()

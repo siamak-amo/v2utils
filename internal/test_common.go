@@ -113,6 +113,7 @@ type VMessAccount struct {
 type VLessAccount struct {
 	ID          string				`json:"id"`
 	Encryption  string				`json:"encryption"`
+	Flow        string              `json:"flow"`
 	Level       int					`json:"level"`
 }
 

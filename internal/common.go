@@ -56,6 +56,7 @@ const (
 	// Protocol parts
 	Vxess_ID  // vless & vmess  we call them vxess
 	Vless_ENC
+	Vless_Flow
 	Vless_Level
 	Vmess_Sec
 	Vmess_AlterID

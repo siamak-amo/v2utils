@@ -54,6 +54,7 @@ func parse_vless_url (u *url.URL) (URLmap) {
 	res[ServerAddress] = u.Hostname()
 	res[Security] = params.Pop ("security")
 	res[Vless_ENC] = params.Pop ("encryption")
+	res[Vless_Flow] = params.Pop ("flow")
 	res[Vless_Level] = params.Pop ("level")
 
 	res[Network] = params.Pop ("type")
@@ -133,7 +134,7 @@ func parse_trojan_url (u *url.URL) (URLmap) {
 	trojan_stream_parser (res, params);
 	trojan_security_parser (res, params);
 
-	extract_unused ("vmess", params);
+	extract_unused ("trojan", params);
 	return res
 }
 
