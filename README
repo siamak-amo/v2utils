@@ -10,9 +10,9 @@ Quick introduction
 
 Many web interfaces (v2ray panels) are available and used for
 managing and configuring V2ray/Xray servers. These interfaces
-usually create URL to configure the client-side programs.
+usually create a URL to configure the client-side programs.
 
-Although these URLs (e.g. vless://id@ip:port) are commonly
+Although these URLs (e.g. vless://uuid@ip:port) are commonly
 used, they are not supported by traditional command-line
 Xray and V2ray programs; only mobile and GUI applications
 like v2rayNG on Android, and v2rayN support them.

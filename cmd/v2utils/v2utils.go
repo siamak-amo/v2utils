@@ -230,7 +230,7 @@ func (opt *Opt) Init() int {
 
 	switch (opt.cmd) {
 	case CMD_RUN_URL:
-		opt.Set_rd_url()
+		opt.init_read_url()
 		break;
 
 	case CMD_TEST_URL, CMD_CONVERT_URL:
@@ -241,22 +241,22 @@ func (opt *Opt) Init() int {
 			}
 		}
 		if 0 < len(opt.urls) {
-			opt.Set_rd_url();
+			opt.init_read_url();
 		} else if "" != opt.in_file {
-			if e := opt.Set_rd_file(); nil != e {
+			if e := opt.init_read_file(); nil != e {
 				log.Errorf ("%v\n", e);
 				return -1
 			}
 		} else {
-			opt.Set_rd_stdin();
+			opt.init_read_stdin();
 		}
 		break;
 
 	case CMD_CONVERT_CFG, CMD_TEST_CFG, CMD_RUN_CFG:
 		if 0 == len(opt.configs) {
-			opt.Set_rd_cfg_stdin();
+			opt.init_read_cfg_stdin();
 		} else {
-			opt.Set_rd_cfg();
+			opt.init_read_cfg();
 		}
 		break;
 	}

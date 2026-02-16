@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"strings"
 
+	"io/fs"
 	"path/filepath"
 
 	log "github.com/siamak-amo/v2utils/log"
@@ -83,17 +84,17 @@ func (opt *Opt) GetInput() (bool) {
 	return true
 }
 
-func (opt *Opt) Set_rd_url() {
+func (opt *Opt) init_read_url() {
 	if 0 == len(opt.urls) ||
 		(1 == len(opt.urls) && opt.urls[0] == "-") {
-		opt.Set_rd_stdin();
+		opt.init_read_stdin();
 	} else {
 		read_method = RURL_BUILTIN;
 		global_index = 0
 	}
 }
 
-func (opt *Opt) Set_rd_file() error {
+func (opt *Opt) init_read_file() error {
 	f, err := os.Open(opt.in_file)
 	if nil != err {
 		return err
@@ -103,7 +104,7 @@ func (opt *Opt) Set_rd_file() error {
 	return nil
 }
 
-func (opt *Opt) Set_rd_stdin() {
+func (opt *Opt) init_read_stdin() {
 	if Stdin_is_tty {
 		println ("Reading URLs from STDIN until EOF:")
 	}
@@ -116,11 +117,12 @@ func (opt *Opt) Set_rd_stdin() {
 // To initialize opt.GetInput to a function that returns
 // file path (.json, .toml, .yaml), or `-` to read from stdin.
 
-func (opt *Opt) Set_rd_cfg_stdin() {
+func (opt *Opt) init_read_cfg_stdin() {
 	read_method = RCFG_STDIN
 }
 
-func (opt *Opt) Set_rd_cfg() {
+// both file and stdin
+func (opt *Opt) init_read_cfg() {
 	if 0 == len(opt.configs) ||
 		(1 == len(opt.configs) && opt.configs[0] == "-") {
 		read_method = RCFG_STDIN;
@@ -144,13 +146,13 @@ func (opt *Opt) Set_rd_cfg() {
 					global_cfg_list = append(global_cfg_list, path)
 				}
 			} else {
-				filepath.Walk(path,
-					func(file_path string, info os.FileInfo, err error) error {
+				filepath.WalkDir (path,
+					func(path string, dir fs.DirEntry, err error) error {
 						if err != nil {
 							return err
 						}
-						if HasSuffixs(info.Name(), Supported_CFG_Formats) {
-							global_cfg_list = append(global_cfg_list, file_path)
+						if HasSuffixs(dir.Name(), Supported_CFG_Formats) {
+							global_cfg_list = append(global_cfg_list, path)
 						}
 						return nil
 					},
