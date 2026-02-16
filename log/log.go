@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package log
 
-import "os"
+import (
+	"os"
+	"golang.org/x/term"
+)
 
 const (
 	Verbose int = iota
@@ -17,6 +20,16 @@ var (
 
 	Log_File = os.Stderr
 )
+
+func Isatty(f *os.File) bool {
+	return term.IsTerminal(int(f.Fd()))
+}
+
+func init() {
+	if ! Isatty(Log_File) {
+		ColorEnabled = false;
+	}
+}
 
 func Must(level int) bool {
 	return (Verbose == LogLevel) ||

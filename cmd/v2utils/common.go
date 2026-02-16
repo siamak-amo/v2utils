@@ -16,6 +16,9 @@ import (
 
 var (
 	Supported_CFG_Formats = []string{".json", ".toml", ".yaml"}
+
+	Stdin_is_tty = log.Isatty(os.Stdin)
+	Stdout_is_tty = log.Isatty(os.Stdout)
 )
 
 // generates filename based on: hash(url)
@@ -34,7 +37,7 @@ func (opt Opt) gen_output_filepath(url []byte) string {
 //         opt.template_path == "-" means to read from stdin
 func (opt *Opt) Init_CFG() error {
 	if "-" == opt.cfg {
-		if Isatty(os.Stdin) {
+		if Stdin_is_tty {
 			println ("Reading json config from STDIN until EOF:")
 		}
 		return opt.v2.Apply_template_byio (os.Stdin);
@@ -148,7 +151,7 @@ func (opt Opt) Get_Default_Template() string {
 
 func (opt Opt) MK_josn_output(url string) error {
 	if "" == opt.output_dir {
-		if err := opt.v2.CFG_Out(os.Stdout, !Isatty(os.Stdout)); nil != err {
+		if err := opt.v2.CFG_Out(os.Stdout, !Stdout_is_tty); nil != err {
 			return err;
 		}
 	} else {

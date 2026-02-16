@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"path/filepath"
-	"golang.org/x/term"
 
 	log "github.com/siamak-amo/v2utils/log"
 )
@@ -28,10 +27,6 @@ var (
 	global_index int
 	global_cfg_list []string
 )
-
-func Isatty(f *os.File) bool {
-	return term.IsTerminal(int(f.Fd()))
-}
 
 func HasSuffixs(haystack string, needles []string) bool {
 	for _, needle := range needles {
@@ -109,7 +104,7 @@ func (opt *Opt) Set_rd_file() error {
 }
 
 func (opt *Opt) Set_rd_stdin() {
-	if Isatty(os.Stdin) {
+	if Stdin_is_tty {
 		println ("Reading URLs from STDIN until EOF:")
 	}
 	global_scanner = bufio.NewScanner(os.Stdin)
