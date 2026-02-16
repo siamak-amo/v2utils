@@ -35,7 +35,7 @@ var (
 	TestCount int = 3
 
 	// Returned when max allowed tests failed
-	Not_Responding_Error = errors.New("Not responding VPN")
+	Not_Responding_Error = errors.New("Not responding")
 )
 
 type TestResult struct {
@@ -105,9 +105,11 @@ func (tester *IP_Contester) Test(v2 *V2utils) (error, *TestResult) {
 					res.IP = ip.String()
 				} else {
 					// The API did not return a valid IP address
-					// We cannot do anything about it right now
+					// We cannot do anything about it right now, probably the API
+					// itself is broken or changed, so a debug message is enough.
 					res.IP = ""
-					log.Debugf("unexpected value in '%s' response.\n", endpoint);
+					log.Debugf("Expected IP in the response of %s, but got: %s\n",
+						endpoint, string(body));
 				}
 				return nil, res;
 			} else {

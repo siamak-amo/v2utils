@@ -14,6 +14,8 @@ const (
 var (
 	LogLevel int
 	ColorEnabled bool = true
+
+	Log_File = os.Stderr
 )
 
 func Must(level int) bool {
@@ -32,7 +34,7 @@ func strcolor(color int, str string) string {
 
 // bypass the level, always print the log
 func Logf(format string, args ...interface{}) {
-	MiniFlogf (os.Stderr, format, args...)
+	MiniFlogf (Log_File, format, args...)
 }
 
 func Debugf(format string, args ...interface{}) {
@@ -41,24 +43,24 @@ func Debugf(format string, args ...interface{}) {
 
 func Verbosef(format string, args ...interface{}) {
 	if (Verbose == LogLevel) {
-		MiniFlogf (os.Stderr, format, args...)
+		MiniFlogf (Log_File, format, args...)
 	}
 }
 
 func Infof(format string, args ...interface{}) {
 	if Must (Info) {
-		Flogf (os.Stderr, strcolor(COLOR_CYAN, "INFO"), format, args...)
+		Flogf (Log_File, strcolor(COLOR_CYAN, "INFO"), format, args...)
 	}
 }
 
 func Warnf(format string, args ...interface{}) {
 	if Must (Warning) {
-		Flogf (os.Stderr, strcolor(COLOR_YELLOW, "WARNING"), format, args...)
+		Flogf (Log_File, strcolor(COLOR_YELLOW, "WARNING"), format, args...)
 	}
 }
 
 func Errorf(format string, args ...interface{}) {
 	if Must (Error) {
-		Flogf (os.Stderr, strcolor(COLOR_RED, "ERROR"), format, args...)
+		Flogf (Log_File, strcolor(COLOR_RED, "ERROR"), format, args...)
 	}
 }

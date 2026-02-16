@@ -25,6 +25,9 @@ type Color struct {
 var COLOR_RESET string = "\033[0m";
 
 func (c Color) Color_Fmt() string {
+	if c.BG_color == COLOR_EMPTY && c.FG_color == COLOR_EMPTY {
+		return ""; // nothing to do
+	}
 	if c.BG_color == COLOR_EMPTY { // setting fg
 		return fmt.Sprintf ("\033[3%dm", c.FG_color-1);
 	} else if c.FG_color == COLOR_EMPTY { //setting bg
