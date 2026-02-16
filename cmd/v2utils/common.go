@@ -4,6 +4,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"strings"
 
 	"crypto/md5"
 	"encoding/hex"
@@ -55,6 +56,19 @@ func result2string(result *pkg.TestResult) string {
 	}
 }
 
+// makes long xray error messages shorter
+func shortError(err string) string {
+	idx := 0
+	max_colon_count := 2
+	for i := len(err)-1; i >= 0 && max_colon_count != 0; i -= 1 {
+		if ':' == err[i] {
+			idx = i+1
+			max_colon_count -= 1
+		}
+	}
+	return strings.TrimSpace(err[idx:]);
+}
+
 func (opt *Opt) Test_CFG() (bool) {
 	var err error;
 	var result *pkg.TestResult;
@@ -71,7 +85,7 @@ func (opt *Opt) Test_CFG() (bool) {
 		if nil == err {
 			fmt.Println(opt.cfg);
 		} else {
-			log.Warnf("File '%s' is broken.\n", opt.cfg)
+			log.Warnf("File '%s' is broken - %s\n", opt.cfg, shortError(err.Error()))
 		}
 	} else if nil != err { // Only print broken configs
 		fmt.Println(opt.cfg);
@@ -95,7 +109,7 @@ func (opt *Opt) Test_URL() (bool) {
 		if nil == err {
 			fmt.Println(opt.url)
 		} else {
-			log.Warnf("URL '%s' is broken.\n", opt.url);
+			log.Warnf("URL '%s' is broken - %s\n", opt.url, shortError(err.Error()));
 		}
 	} else if nil != err { // Only print broken urls
 		fmt.Println(opt.url);
