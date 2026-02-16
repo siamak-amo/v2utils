@@ -142,12 +142,11 @@ beginning_of_parse:
 					Optarg = argv[Optind]
 					Optind += 1
 				} else {
-					Optopt = '?'
 					if Opterr {
 						errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
 						goto beginning_of_parse;
 					} else {
-						return '?';
+						Optopt = '?'; return '?';
 					}
 				}
 			}
@@ -177,12 +176,11 @@ beginning_of_parse:
 					Optarg = argv[Optind]
 					Optind += 1
 				} else if v.HasArg {
-					Optopt = '?';
 					if Opterr {
 						errlog("%s: option %s: requires parameter\n", argv[0], arg);
 						goto beginning_of_parse;
 					} else {
-						return '?'
+						Optopt = '?'; return '?';
 					}
 				}
 				return (int)(v.Value)
@@ -224,12 +222,11 @@ beginning_of_parse:
 		idx, acc_param := arg_lookup (arg, optstring);
 		if idx < 0 {
 			Optind += 1
-			Optopt = '?'
 			if Opterr {
 				errlog ("%s: invalid option  -- '%s'\n", argv[0], arg[1:2]);
 				goto beginning_of_parse;
 			} else {
-				return '?';
+				Optopt = '?'; return '?';
 			}
 		}
 		if acc_param {
@@ -241,12 +238,11 @@ beginning_of_parse:
 					Optarg = argv[Optind]
 					Optind += 1
 				} else {
-					Optopt = '?'
 					if Opterr {
 						errlog("%s: option -%c: requires parameter\n", argv[0], Optopt);
 						goto beginning_of_parse;
 					} else {
-						return '?';
+						Optopt = '?'; return '?';
 					}
 				}
 			}
