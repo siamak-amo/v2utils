@@ -86,14 +86,16 @@ func (opt *Opt) GetArgs() {
 		{"url",           true,  'u'},
 		{"config",        true,  'c'},
 		{"template",      true,  't'},
-		{"Timeout",       true,  'T'},
 		{"output",        true,  'o'},
 		{"input",         true,  'i'},
+
 		{"reverse",       false, 'r'},
 		{"rm",            false, 'R'},
-		{"help",          false, 'h'},
+		{"Timeout",       true,  'T'},
 		{"test-count",    true,  'n'},
 		{"tc",            true,  'n'},
+
+		{"help",          false, 'h'},
 		{"no-color",      false, 'C'},
 		{"verbose",       false, 'v'},
 		{"version",       false, 'V'},

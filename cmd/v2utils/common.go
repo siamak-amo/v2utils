@@ -72,14 +72,18 @@ func shortError(err string) string {
 	return strings.TrimSpace(err[idx:]);
 }
 
-func (opt *Opt) Test_CFG() (bool) {
-	var err error;
-	var result *pkg.TestResult;
+func (opt *Opt) get_contester() pkg.ConnectivityTester_I {
 	if opt.verbose {
-		err, result = opt.v2.Test_CFG(opt.cfg, pkg.AdvancedTester);
+		// To also get the IP address of VPN
+		return pkg.AdvancedTester;
 	} else {
-		err, result = opt.v2.Test_CFG(opt.cfg, pkg.SimpleTester);
+		// Simply test connectivity of VPN
+		return pkg.SimpleTester;
 	}
+}
+
+func (opt *Opt) Test_CFG() (bool) {
+	err, result := opt.v2.Test_CFG(opt.cfg, opt.get_contester());
 
 	if nil == err && opt.verbose {
 		log.Infof("File '%s':  %s OK.\n", opt.cfg, result2string(result));
@@ -97,13 +101,7 @@ func (opt *Opt) Test_CFG() (bool) {
 }
 
 func (opt *Opt) Test_URL() (bool) {
-	var err error;
-	var result *pkg.TestResult;
-	if opt.verbose {
-		err, result = opt.v2.Test_URL(opt.url, pkg.AdvancedTester);
-	} else {
-		err, result = opt.v2.Test_URL(opt.url, pkg.SimpleTester);
-	}
+	err, result := opt.v2.Test_URL(opt.url, opt.get_contester());
 
 	if nil == err && opt.verbose {
 		log.Infof("URL '%s':  %s OK.\n", opt.url, result2string(result));
