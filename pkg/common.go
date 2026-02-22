@@ -53,6 +53,18 @@ func (v2 *V2utils) HasTemplate() bool {
 	return v2.set_template;
 }
 
+func (v2 *V2utils) HasInboundConfig() bool {
+	return (nil != v2.CFG.InboundConfigs && 0 != len(v2.CFG.InboundConfigs));
+}
+
+func (v2 *V2utils) SetDefaultInboundConfig() {
+	if c, e := internal.Gen_main(DEF_Run_Template); nil == e {
+		v2.CFG.InboundConfigs = c.InboundConfigs;
+	} else {
+		panic(e); // it's ours, broken default template
+	}
+}
+
 // Applies the template v2.template_path to v2.CFG
 func (v2 *V2utils) Apply_template(file_path string) error {
 	t := core.ConfigSource{

@@ -351,6 +351,13 @@ func (opt Opt) Do() int {
 			log.Errorf("Loading config '%s' failed - %v\n", opt.cfg, e)
 			return -1;
 		}
+		if !opt.v2.HasInboundConfig() {
+			log.Warnf(
+				"No 'inbounds' section found in '%s', using the default template: %s\n",
+				opt.cfg, opt.Get_Default_Template(),
+			)
+			opt.v2.SetDefaultInboundConfig();
+		}
 		if e := opt.v2.Exec_Xray(); nil != e {
 			log.Errorf("Exec xray-core failed - %v\n", e)
 			return -1;
